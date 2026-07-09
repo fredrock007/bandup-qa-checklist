@@ -1,4 +1,4 @@
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "3.0.0";
 const STORAGE_KEY = "bandup-qa-manager-v2";
 
 const MODULES = [
@@ -40,6 +40,38 @@ const GENERATED_EXPORTS = {
   codex: {
     filename: "codex-qa-task.md",
     title: "Codex task generated.",
+  },
+  architectReview: {
+    filename: "architect-review.md",
+    title: "Architect review generated.",
+  },
+  githubIssue: {
+    filename: "github-issue.md",
+    title: "GitHub issue generated.",
+  },
+  githubIssues: {
+    filename: "github-issues.md",
+    title: "GitHub issues generated.",
+  },
+  pullRequest: {
+    filename: "pull-request-description.md",
+    title: "Pull request description generated.",
+  },
+  releaseNotes: {
+    filename: "release-notes.md",
+    title: "Release notes generated.",
+  },
+  changelog: {
+    filename: "changelog-entry.md",
+    title: "Changelog entry generated.",
+  },
+  releaseRecommendation: {
+    filename: "release-recommendation.md",
+    title: "Release recommendation generated.",
+  },
+  selectedBugs: {
+    filename: "selected-bugs-report.md",
+    title: "Selected bugs report generated.",
   },
 };
 
@@ -218,6 +250,21 @@ const Utils = {
     URL.revokeObjectURL(url);
   },
 
+  readJsonFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          resolve(JSON.parse(reader.result));
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  },
+
   toast(message) {
     document.querySelector(".toast")?.remove();
     const toast = document.createElement("div");
@@ -257,6 +304,7 @@ const Storage = {
         userAgent: "",
       },
       counters: {},
+      selectedBugIds: [],
       items: {},
     };
   },
@@ -284,6 +332,7 @@ const Storage = {
       ...saved,
       session: { ...base.session, ...(saved.session || {}) },
       counters: { ...base.counters, ...(saved.counters || {}) },
+      selectedBugIds: Array.isArray(saved.selectedBugIds) ? saved.selectedBugIds : [],
       items: { ...(saved.items || {}) },
     };
   },
@@ -381,6 +430,27 @@ const QAState = {
 
   getUnresolvedBugs() {
     return this.getBugs().filter(({ item }) => !BUG_CLOSED_STATUSES.has(item.workStatus));
+  },
+
+  getBugById(bugId) {
+    return this.getBugs().find(({ item }) => item.bugId === bugId);
+  },
+
+  getSelectedBugs() {
+    const selected = new Set(state.selectedBugIds || []);
+    return this.getBugs().filter(({ item }) => selected.has(item.bugId));
+  },
+
+  getActionBugs() {
+    const selected = this.getSelectedBugs();
+    return selected.length ? selected : this.getUnresolvedBugs();
+  },
+
+  setBugSelected(bugId, selected) {
+    const current = new Set(state.selectedBugIds || []);
+    if (selected) current.add(bugId);
+    else current.delete(bugId);
+    state.selectedBugIds = Array.from(current).sort();
   },
 
   getPrioritizedWork() {
@@ -585,8 +655,64 @@ const Renderer = {
     document.getElementById("exportBugsReport").addEventListener("click", () => {
       this.setGeneratedExport("bugs", Exporter.buildBugsOnlyReport());
     });
+    document.getElementById("generateReleaseRecommendation").addEventListener("click", () => {
+      this.setGeneratedExport("releaseRecommendation", Exporter.buildReleaseRecommendation());
+    });
+    document.getElementById("generateArchitectReview").addEventListener("click", () => {
+      this.setGeneratedExport("architectReview", Exporter.buildArchitectReview(QAState.getActionBugs()));
+    });
     document.getElementById("prepareCodexTask").addEventListener("click", () => {
       this.setGeneratedExport("codex", Exporter.buildCodexTask());
+    });
+    document.getElementById("prepareSelectedCodexTask").addEventListener("click", () => {
+      this.setGeneratedExport("codex", Exporter.buildCodexTask(QAState.getSelectedBugs()));
+    });
+    document.getElementById("generateSelectedArchitectReview").addEventListener("click", () => {
+      this.setGeneratedExport("architectReview", Exporter.buildArchitectReview(QAState.getSelectedBugs()));
+    });
+    document.getElementById("exportSelectedBugs").addEventListener("click", () => {
+      this.setGeneratedExport("selectedBugs", Exporter.buildBugsOnlyReport(QAState.getSelectedBugs()));
+    });
+    document.getElementById("generateGithubIssue").addEventListener("click", () => {
+      this.setGeneratedExport("githubIssue", Exporter.buildGithubIssue(QAState.getActionBugs().slice(0, 1)));
+    });
+    document.getElementById("generateGithubIssues").addEventListener("click", () => {
+      this.setGeneratedExport("githubIssues", Exporter.buildGithubIssues(QAState.getActionBugs()));
+    });
+    document.getElementById("generatePullRequestDescription").addEventListener("click", () => {
+      this.setGeneratedExport("pullRequest", Exporter.buildPullRequestDescription(QAState.getActionBugs()));
+    });
+    document.getElementById("generateReleaseNotes").addEventListener("click", () => {
+      this.setGeneratedExport("releaseNotes", Exporter.buildReleaseNotes(QAState.getActionBugs()));
+    });
+    document.getElementById("generateChangelogEntry").addEventListener("click", () => {
+      this.setGeneratedExport("changelog", Exporter.buildChangelogEntry(QAState.getActionBugs()));
+    });
+    document.getElementById("exportSessionJson").addEventListener("click", () => {
+      Utils.download(
+        `bandup-qa-session-${state.session.moduleName}-${state.session.testDate || "backup"}.json`,
+        JSON.stringify({ exportedAt: new Date().toISOString(), state }, null, 2),
+        "application/json",
+      );
+    });
+    document.getElementById("importSessionJson").addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const imported = await Utils.readJsonFile(file);
+        const nextState = imported.state || imported;
+        if (!nextState || typeof nextState !== "object" || !nextState.session || !nextState.items) {
+          throw new Error("Invalid QA Manager session file.");
+        }
+        state = Storage.merge(Storage.defaultState(), nextState);
+        persist();
+        this.renderAll();
+        Utils.toast("Session restored.");
+      } catch (error) {
+        Utils.toast("Could not import session JSON.");
+      } finally {
+        event.target.value = "";
+      }
     });
     document.getElementById("copyGeneratedExport").addEventListener("click", async () => {
       const output = document.getElementById("generatedExport").value;
@@ -594,8 +720,13 @@ const Renderer = {
         Utils.toast("Generate an engineering export first.");
         return;
       }
-      await navigator.clipboard.writeText(output);
-      Utils.toast("Generated Markdown copied.");
+      try {
+        await navigator.clipboard.writeText(output);
+        Utils.toast("Generated Markdown copied.");
+      } catch {
+        document.getElementById("generatedExport").select();
+        Utils.toast("Copy unavailable. Markdown selected for manual copy.");
+      }
     });
     document.getElementById("downloadGeneratedExport").addEventListener("click", () => {
       const output = document.getElementById("generatedExport").value;
@@ -699,6 +830,21 @@ const Renderer = {
             Exporter.buildSingleBugReport(entry, item),
             "text/markdown",
           );
+        });
+        card.querySelector('[data-action="codex-bug"]').addEventListener("click", () => {
+          const bug = ensureBugForCard(item, entry);
+          if (!bug) return;
+          this.setGeneratedExport("codex", Exporter.buildCodexTask([bug]));
+        });
+        card.querySelector('[data-action="architect-bug"]').addEventListener("click", () => {
+          const bug = ensureBugForCard(item, entry);
+          if (!bug) return;
+          this.setGeneratedExport("architectReview", Exporter.buildArchitectReview([bug]));
+        });
+        card.querySelector('[data-action="github-bug"]').addEventListener("click", () => {
+          const bug = ensureBugForCard(item, entry);
+          if (!bug) return;
+          this.setGeneratedExport("githubIssue", Exporter.buildGithubIssue([bug]));
         });
 
         card.querySelectorAll("[data-status-button]").forEach((button) => {
@@ -820,8 +966,13 @@ const Renderer = {
         const bugModule = module?.name || entry?.moduleName || "Unknown module";
         return `
           <article class="bug-row">
+            <label class="bug-select">
+              <input type="checkbox" data-select-bug="${Utils.escapeHtml(item.bugId)}" ${
+                (state.selectedBugIds || []).includes(item.bugId) ? "checked" : ""
+              } />
+              <span>${Utils.escapeHtml(item.bugId)}</span>
+            </label>
             <div>
-              <strong>${Utils.escapeHtml(item.bugId)}</strong>
               <h3>${Utils.escapeHtml(bugTitle)}</h3>
               <p>${Utils.escapeHtml(bugModule)} / ${Utils.escapeHtml(bugSection)}</p>
             </div>
@@ -834,6 +985,13 @@ const Renderer = {
         `;
       })
       .join("");
+
+    container.querySelectorAll("[data-select-bug]").forEach((checkbox) => {
+      checkbox.addEventListener("change", () => {
+        QAState.setBugSelected(checkbox.dataset.selectBug, checkbox.checked);
+        persistAndRender({ skipChecklist: true });
+      });
+    });
   },
 
   renderEvidenceGallery() {
@@ -970,8 +1128,8 @@ const Exporter = {
     ].join("\n");
   },
 
-  buildBugsOnlyReport() {
-    const bugs = QAState.getUnresolvedBugs();
+  buildBugsOnlyReport(inputBugs = QAState.getUnresolvedBugs()) {
+    const bugs = inputBugs;
     const lines = [
       "# Unresolved Bugs Report",
       "",
@@ -991,8 +1149,8 @@ const Exporter = {
     return lines.join("\n");
   },
 
-  buildCodexTask() {
-    const bugs = QAState.getUnresolvedBugs();
+  buildCodexTask(inputBugs = QAState.getUnresolvedBugs()) {
+    const bugs = inputBugs;
     const lines = [
       "# Codex QA Bug-Fix Task",
       "",
@@ -1018,6 +1176,201 @@ const Exporter = {
     );
 
     return lines.join("\n");
+  },
+
+  buildReleaseRecommendation() {
+    const stats = QAState.getStats();
+    const status = stats.mvpBlockers || stats.critical
+      ? "Not Ready"
+      : stats.openBugs || stats.notTested
+        ? "Conditionally Ready"
+        : "Ready";
+    const blockers = QAState.getUnresolvedBugs().filter(({ item }) => item.severity === "MVP Blocker");
+    const critical = QAState.getUnresolvedBugs().filter(({ item }) => item.priority === "Critical");
+    const high = QAState.getUnresolvedBugs().filter(({ item }) => item.priority === "High");
+    return [
+      "# Release Recommendation",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+      "## Release Status",
+      "",
+      status,
+      "",
+      "## Reasons",
+      "",
+      this.releaseReadiness(stats),
+      "",
+      "## Statistics",
+      "",
+      `- Progress: ${stats.progress}%`,
+      `- Tests executed: ${stats.passed + stats.failed} / ${stats.total}`,
+      `- Passed: ${stats.passed}`,
+      `- Failed: ${stats.failed}`,
+      `- Not tested: ${stats.notTested}`,
+      `- Open bugs: ${stats.openBugs}`,
+      `- Closed bugs: ${stats.closed}`,
+      "",
+      "## Remaining Risks",
+      "",
+      this.majorRisks(stats),
+      "",
+      "## Outstanding MVP Blockers",
+      "",
+      this.bugListOrNone(blockers),
+      "",
+      "## Critical Bugs",
+      "",
+      this.bugListOrNone(critical),
+      "",
+      "## High Priority Bugs",
+      "",
+      this.bugListOrNone(high),
+      "",
+      "## Architect Recommendation",
+      "",
+      this.architectReleaseRecommendation(stats),
+      "",
+      "## Overall Recommendation",
+      "",
+      this.overallRecommendation(stats),
+      "",
+    ].join("\n");
+  },
+
+  buildArchitectReview(inputBugs = QAState.getUnresolvedBugs()) {
+    const bugs = inputBugs;
+    const stats = QAState.getStats();
+    return [
+      "# Architect Review",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+      "## Scope",
+      "",
+      bugs.length
+        ? `This review analyses ${bugs.length} selected or unresolved QA finding(s).`
+        : "No selected or unresolved QA findings are currently recorded.",
+      "",
+      "## Recurring Patterns",
+      "",
+      this.patternSummary(bugs, "severity"),
+      "",
+      "## Likely Root Causes",
+      "",
+      this.fieldSummary(bugs, "possibleRootCause", "No explicit root causes recorded. Inspect implementation paths related to the affected modules and sections."),
+      "",
+      "## Architectural Observations",
+      "",
+      this.architecturalObservation(stats, bugs),
+      "",
+      "## Potential Affected Components",
+      "",
+      this.affectedComponents(bugs),
+      "",
+      "## Suggested Investigation Areas",
+      "",
+      this.fieldSummary(bugs, "suggestedInvestigation", "Start with the route/component handling each failed flow and verify state persistence, UI state, and exported evidence."),
+      "",
+      "## Suggested Implementation Strategy",
+      "",
+      "Prefer the smallest safe fix per bug. Preserve existing architecture, avoid unrelated refactors, and verify the specific failing QA flow before broader regression checks.",
+      "",
+      "## Risks",
+      "",
+      this.majorRisks(stats),
+      "",
+    ].join("\n");
+  },
+
+  buildGithubIssue(inputBugs = QAState.getActionBugs().slice(0, 1)) {
+    const bug = inputBugs[0];
+    if (!bug) return "# GitHub Issue\n\nNo bug selected or unresolved.";
+    return [
+      `# ${bug.item.bugId}: ${bug.title}`,
+      "",
+      "## Summary",
+      "",
+      `${bug.title} fails during ${bug.module.name} QA.`,
+      "",
+      ...this.bugDetailBlock(bug),
+      "## Acceptance Criteria",
+      "",
+      `- ${bug.item.bugId} is reproduced or formally classified as unable to reproduce.`,
+      "- Root cause is documented.",
+      "- The smallest safe fix is implemented if required.",
+      "- Relevant manual QA checks pass.",
+      "",
+    ].join("\n");
+  },
+
+  buildGithubIssues(inputBugs = QAState.getActionBugs()) {
+    const bugs = inputBugs;
+    const lines = ["# GitHub Issues", "", `Generated: ${new Date().toISOString()}`, ""];
+    if (!bugs.length) {
+      lines.push("No selected or unresolved bugs available.", "");
+      return lines.join("\n");
+    }
+    bugs.forEach((bug) => {
+      lines.push("---", "", this.buildGithubIssue([bug]));
+    });
+    return lines.join("\n");
+  },
+
+  buildPullRequestDescription(inputBugs = QAState.getActionBugs()) {
+    return [
+      "# Pull Request Description",
+      "",
+      "## Summary",
+      "",
+      "- Address QA findings recorded in BandUp QA Manager.",
+      "- Preserve existing architecture and avoid unrelated changes.",
+      "",
+      "## QA Findings Addressed",
+      "",
+      this.bugListOrNone(inputBugs),
+      "",
+      "## Verification Plan",
+      "",
+      "- Reproduce each listed issue before fixing where possible.",
+      "- Verify each acceptance criterion.",
+      "- Run relevant static checks.",
+      "- Perform targeted manual QA for affected flows.",
+      "",
+      "## Documentation",
+      "",
+      "- Update `PROJECT_STATUS.md` if project status changes.",
+      "- Update EKB only if new engineering knowledge is gained.",
+      "",
+    ].join("\n");
+  },
+
+  buildReleaseNotes(inputBugs = QAState.getActionBugs()) {
+    return [
+      "# Release Notes",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+      "## Fixed / Reviewed",
+      "",
+      this.bugListOrNone(inputBugs),
+      "",
+      "## QA Status",
+      "",
+      this.releaseReadiness(QAState.getStats()),
+      "",
+    ].join("\n");
+  },
+
+  buildChangelogEntry(inputBugs = QAState.getActionBugs()) {
+    return [
+      "## Unreleased",
+      "",
+      "### QA",
+      "",
+      this.bugListOrNone(inputBugs),
+      "",
+    ].join("\n");
   },
 
   buildMarkdownReport() {
@@ -1242,6 +1595,11 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
     } | Priority: ${item.priority || "Not selected"} | Status: ${item.workStatus || "Open"}`;
   },
 
+  bugListOrNone(bugs) {
+    if (!bugs.length) return "No items recorded.";
+    return bugs.map((bug) => this.bugSummaryLine(bug)).join("\n");
+  },
+
   bugDetailBlock(bug) {
     const { item, title, module, section } = bug;
     const lines = [
@@ -1332,6 +1690,65 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
     return "Ready for release review based on the current QA record.";
   },
 
+  architectReleaseRecommendation(stats) {
+    if (stats.mvpBlockers || stats.critical) {
+      return "Architectural recommendation: do not release. Resolve MVP blockers and critical bugs first, then retest the affected workflows.";
+    }
+    if (stats.high || stats.openBugs) {
+      return "Architectural recommendation: conditionally hold release until high-priority issues are triaged and accepted or fixed.";
+    }
+    if (stats.notTested) {
+      return "Architectural recommendation: complete remaining QA coverage before final release approval.";
+    }
+    return "Architectural recommendation: acceptable for release review based on the recorded QA state.";
+  },
+
+  patternSummary(bugs, field) {
+    if (!bugs.length) return "No findings available for pattern analysis.";
+    const counts = bugs.reduce((acc, bug) => {
+      const value = bug.item[field] || "Not specified";
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {});
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([value, count]) => `- ${value}: ${count}`)
+      .join("\n");
+  },
+
+  fieldSummary(bugs, field, fallback) {
+    const values = bugs
+      .map((bug) => ({ bugId: bug.item.bugId, value: bug.item[field] }))
+      .filter(({ value }) => value);
+    if (!values.length) return fallback;
+    return values.map(({ bugId, value }) => `- ${bugId}: ${value}`).join("\n");
+  },
+
+  affectedComponents(bugs) {
+    if (!bugs.length) return "No affected components recorded.";
+    const sections = [...new Set(bugs.map((bug) => `${bug.module.name} / ${bug.section}`))];
+    const suggestedFiles = bugs
+      .flatMap((bug) => (bug.item.suggestedFiles || "").split("\n"))
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const lines = sections.map((section) => `- ${section}`);
+    if (suggestedFiles.length) {
+      lines.push("", "Suggested files:", ...[...new Set(suggestedFiles)].map((file) => `- ${file}`));
+    }
+    return lines.join("\n");
+  },
+
+  architecturalObservation(stats, bugs) {
+    if (!bugs.length) return "No open or selected findings are available for architectural analysis.";
+    if (stats.mvpBlockers || stats.critical) {
+      return "The QA state indicates release-blocking risk. Focus first on correctness, state persistence, routing, and user-visible workflow integrity.";
+    }
+    if (bugs.some((bug) => bug.item.developerConsole)) {
+      return "Some findings include developer console output. Inspect runtime errors before making UI-level assumptions.";
+    }
+    return "Current findings appear suitable for incremental bug-fix work without architectural redesign.";
+  },
+
   overallRecommendation(stats) {
     if (stats.mvpBlockers || stats.critical) return "Do not release until MVP blockers and critical issues are resolved.";
     if (stats.openBugs) return "Continue QA stabilization before release approval.";
@@ -1386,6 +1803,18 @@ function uniqueBugs(bugs) {
     seen.add(item.bugId);
     return true;
   });
+}
+
+function ensureBugForCard(item, entry) {
+  if (!item.bugId) {
+    Utils.toast("Mark this test as Fail before generating a bug artifact.");
+    return null;
+  }
+  return {
+    ...entry,
+    module: MODULES.find((module) => module.key === entry.moduleKey) || QAState.getCurrentModule(),
+    item,
+  };
 }
 
 function applyBugFilters(bugs) {

@@ -18,6 +18,8 @@ https://fredrock007.github.io/bandup-qa-checklist/
 
 ## Purpose
 
+Version 3 is the Release Candidate intended for real-world BandUp Reading manual QA.
+
 The original Version 1 app was a Reading QA checklist.
 
 Version 2 evolves it into a small QA management application that supports:
@@ -32,6 +34,8 @@ Version 2 evolves it into a small QA management application that supports:
 - local browser persistence
 - future module expansion
 - future Supabase synchronization without redesigning the UI
+
+Version 3 refines it into an Engineering Workspace with scoped bug actions, selected-bug handoff, JSON session backup/restore, and release decision reports.
 
 ## Current Scope
 
@@ -176,9 +180,17 @@ Bug filtering supports:
 - closed bugs
 - bug ID search
 
-### Export Centre
+### Engineering Workspace
 
-The Export Centre turns QA sessions into engineering artifacts without modifying project files.
+The Engineering Workspace turns QA sessions into engineering artifacts without modifying project files.
+
+Workspace sections:
+
+- QA Reports
+- Engineering Documentation
+- AI Tasks
+- GitHub
+- Backup & Restore
 
 Session report exports:
 
@@ -202,13 +214,39 @@ Engineering documentation exports:
 - generated `NEXT_DEVELOPMENT_SPRINT.md` update section
 - QA executive summary for the Founder and Principal Software Architect
 - unresolved bugs-only report
+- release recommendation
+- architect review
 - Codex task handoff document
 
 The QA Manager never overwrites engineering documentation. It generates proposed Markdown that Codex can review before updating the BandUp repository.
 
+### Per-Bug Actions
+
+Every bug card supports scoped actions for that specific bug:
+
+- Export Bug
+- Prepare Codex Task
+- Generate Architect Review
+- Generate GitHub Issue
+
+These actions include only the selected bug and never unrelated bugs.
+
+### Multi-Select Bug Actions
+
+The bug triage list supports checkbox selection.
+
+Selected-bug actions include:
+
+- Prepare Selected Codex Task
+- Generate Selected Architect Review
+- Export Selected Bugs
+- Generate GitHub Issues
+
+If no bugs are selected, workspace-level actions use unresolved bugs where appropriate.
+
 ### Single Bug Export
 
-Single bug exports are designed to be pasted directly into ChatGPT or Codex.
+Single bug exports are designed to be pasted directly into ChatGPT, Codex, or GitHub.
 
 Each single bug export includes:
 
@@ -253,6 +291,64 @@ It ends with the required BandUp engineering instruction:
 ```text
 Please investigate the root cause, propose the smallest safe implementation, verify the fix, update all relevant documentation, commit, push, and synchronize the Google Drive workspace if documentation changes.
 ```
+
+### Release Recommendation
+
+Generate Release Recommendation produces an executive release decision:
+
+- Ready
+- Conditionally Ready
+- Not Ready
+
+It includes reasons, statistics, remaining risks, outstanding MVP blockers, critical bugs, high-priority bugs, architect recommendation, and overall recommendation.
+
+### Architect Review
+
+Generate Architect Review analyses QA findings for the Principal Software Architect.
+
+It identifies:
+
+- recurring patterns
+- likely root causes
+- architectural observations
+- potential affected components
+- suggested investigation areas
+- suggested implementation strategy
+- risks
+
+### GitHub Markdown Generators
+
+The GitHub section generates Markdown only. It does not call GitHub APIs.
+
+Available generators:
+
+- GitHub Issue
+- GitHub Issues
+- Pull Request Description
+- Release Notes
+- Changelog Entry
+
+### JSON Session Backup And Restore
+
+The Backup & Restore section supports:
+
+- Export Session `.json`
+- Import Session `.json`
+
+The session backup includes:
+
+- session metadata
+- test results
+- notes
+- screenshots
+- bug IDs
+- progress
+- architect notes
+- developer console output
+- local counters
+- selected bug IDs
+
+Importing a session completely restores the QA Manager state in the browser.
 
 ### Export Governance
 
@@ -333,6 +429,19 @@ Possible future generated actions:
 - Generate GitHub Issue
 - Generate Pull Request Summary
 - Generate Test Completion Report
+
+## Release Candidate Status
+
+Version 3 is intended to be the final planned feature milestone before production use.
+
+Future changes should be driven by real QA usage and confirmed defects, not speculative feature expansion.
+
+Recommended operating rule:
+
+- Use the app for BandUp Reading QA.
+- Export session JSON at the end of meaningful QA sessions.
+- Use generated Markdown as proposed documentation only.
+- Let Codex review and apply generated documentation to the main BandUp repository.
 
 ## Files
 

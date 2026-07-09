@@ -190,17 +190,17 @@
         <div id="sectionProgress" class="section-progress"></div>
       </section>
 
-      <section class="panel export-centre" aria-labelledby="export-centre-title">
+      <section class="panel export-centre" aria-labelledby="engineering-workspace-title">
         <div class="section-title">
           <div>
             <p class="eyebrow">Engineering Handover</p>
-            <h2 id="export-centre-title">Export Centre</h2>
+            <h2 id="engineering-workspace-title">Engineering Workspace</h2>
           </div>
         </div>
 
         <div class="export-grid">
           <article class="export-card">
-            <p class="eyebrow">QA Report</p>
+            <p class="eyebrow">QA Reports</p>
             <h3>Session Reports</h3>
             <p>Export complete QA results for review, printing, or PDF handoff.</p>
             <div class="export-actions">
@@ -219,7 +219,46 @@
               <button id="exportSprintUpdate" type="button">Generate NEXT_DEVELOPMENT_SPRINT Update</button>
               <button id="exportQaSummary" type="button">Generate QA Summary</button>
               <button id="exportBugsReport" type="button">Generate Bugs Report</button>
+              <button id="generateReleaseRecommendation" type="button">Generate Release Recommendation</button>
+              <button id="generateArchitectReview" type="button">Generate Architect Review</button>
+            </div>
+          </article>
+
+          <article class="export-card">
+            <p class="eyebrow">AI Tasks</p>
+            <h3>Selected Bug Handoff</h3>
+            <p>Generate focused AI-ready task documents for selected bugs only.</p>
+            <div class="export-actions">
               <button id="prepareCodexTask" type="button">Prepare Codex Task</button>
+              <button id="prepareSelectedCodexTask" type="button">Prepare Selected Codex Task</button>
+              <button id="generateSelectedArchitectReview" type="button">Generate Selected Architect Review</button>
+              <button id="exportSelectedBugs" type="button">Export Selected Bugs</button>
+            </div>
+          </article>
+
+          <article class="export-card">
+            <p class="eyebrow">GitHub</p>
+            <h3>Markdown Generators</h3>
+            <p>Generate professional Markdown for GitHub workflows without using GitHub APIs.</p>
+            <div class="export-actions">
+              <button id="generateGithubIssue" type="button">Generate GitHub Issue</button>
+              <button id="generateGithubIssues" type="button">Generate GitHub Issues</button>
+              <button id="generatePullRequestDescription" type="button">Generate Pull Request Description</button>
+              <button id="generateReleaseNotes" type="button">Generate Release Notes</button>
+              <button id="generateChangelogEntry" type="button">Generate Changelog Entry</button>
+            </div>
+          </article>
+
+          <article class="export-card">
+            <p class="eyebrow">Backup & Restore</p>
+            <h3>Session Data</h3>
+            <p>Backup or restore the complete local QA session, including screenshots and bug IDs.</p>
+            <div class="export-actions">
+              <button id="exportSessionJson" type="button">Export Session (.json)</button>
+              <label class="import-button">
+                Import Session (.json)
+                <input id="importSessionJson" type="file" accept="application/json,.json" />
+              </label>
             </div>
           </article>
         </div>
@@ -303,6 +342,9 @@
           </div>
           <div class="card-actions">
             <button class="secondary" type="button" data-action="export-bug">Export Bug</button>
+            <button class="secondary" type="button" data-action="codex-bug">Prepare Codex Task</button>
+            <button class="secondary" type="button" data-action="architect-bug">Generate Architect Review</button>
+            <button class="secondary" type="button" data-action="github-bug">Generate GitHub Issue</button>
             <div class="status-toggle" role="group" aria-label="Test result">
               <button type="button" data-status-button="Pass">Pass</button>
               <button type="button" data-status-button="Fail">Fail</button>

@@ -330,6 +330,27 @@ h3 {
   margin-top: 1rem;
 }
 
+.export-actions button,
+.import-button {
+  min-height: 42px;
+}
+
+.import-button {
+  align-items: center;
+  background: #e8eef8;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 900;
+  padding: 0.7rem 0.95rem;
+}
+
+.import-button input {
+  display: none;
+}
+
 .generated-output {
   border-top: 1px solid var(--border);
   display: grid;
@@ -406,6 +427,7 @@ h3 {
   display: grid;
   gap: 0.5rem;
   justify-items: end;
+  max-width: 560px;
 }
 
 .bug-id {
@@ -565,10 +587,23 @@ h3 {
 
 .bug-row {
   align-items: center;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   gap: 1rem;
   padding: 0.9rem;
+}
+
+.bug-select {
+  align-items: center;
+  color: var(--text);
+  display: inline-flex;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.bug-select input {
+  height: 18px;
+  width: 18px;
 }
 
 .bug-row p {
