@@ -3,22 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BandUp QA Checklist</title>
+    <title>BandUp QA Manager</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="app-header">
       <div>
-        <p class="eyebrow">Manual QA</p>
-        <h1>BandUp QA Checklist</h1>
+        <p class="eyebrow">QA Management System</p>
+        <h1>BandUp QA Manager</h1>
         <p class="header-copy">
-          Browser-based checklist for validating BandUp modules during MVP QA.
+          Static browser-based QA management for BandUp manual testing, bug evidence,
+          and developer handoff.
         </p>
       </div>
       <div class="header-actions">
-        <button id="exportMarkdown" type="button">Export Markdown</button>
+        <button id="exportMarkdown" type="button">Export Report</button>
         <button id="exportHtml" type="button">Export HTML</button>
-        <button id="printReport" type="button">Print / Save PDF</button>
+        <button id="printReport" type="button">Print / PDF</button>
         <button id="resetAll" class="danger" type="button">Reset</button>
       </div>
     </header>
@@ -28,7 +29,7 @@
         <div class="section-title">
           <div>
             <p class="eyebrow">Test Session</p>
-            <h2 id="session-title">Project Details</h2>
+            <h2 id="session-title">Project, Build, and Environment</h2>
           </div>
           <span id="saveState" class="save-state">Saved locally</span>
         </div>
@@ -40,27 +41,11 @@
           </label>
           <label>
             Module
-            <input id="moduleName" type="text" value="Reading" />
+            <select id="moduleName"></select>
           </label>
           <label>
             Tester
             <input id="testerName" type="text" placeholder="Tester name" />
-          </label>
-          <label>
-            Date
-            <input id="testDate" type="date" />
-          </label>
-          <label>
-            Commit / build
-            <input id="commitBuild" type="text" placeholder="Commit hash or build label" />
-          </label>
-          <label>
-            Device
-            <input id="deviceName" type="text" placeholder="Desktop, iPhone, Android..." />
-          </label>
-          <label>
-            Browser
-            <input id="browserName" type="text" placeholder="Chrome, Safari, Firefox..." />
           </label>
           <label>
             Environment
@@ -70,49 +55,189 @@
               <option value="Production">Production</option>
             </select>
           </label>
+          <label>
+            Git commit
+            <input id="gitCommit" type="text" placeholder="Commit hash" />
+          </label>
+          <label>
+            Branch
+            <input id="branchName" type="text" placeholder="main" />
+          </label>
+          <label>
+            Version
+            <input id="versionName" type="text" placeholder="MVP QA, v1.0..." />
+          </label>
+          <label>
+            Build date
+            <input id="buildDate" type="date" />
+          </label>
+          <label>
+            Build time
+            <input id="buildTime" type="time" />
+          </label>
+          <label>
+            Test date
+            <input id="testDate" type="date" />
+          </label>
+          <label>
+            Test time
+            <input id="testTime" type="time" />
+          </label>
+          <label>
+            Device
+            <input id="deviceName" type="text" placeholder="Desktop, iPhone, Android..." />
+          </label>
+        </div>
+
+        <div class="detected-panel">
+          <div class="section-title compact">
+            <div>
+              <p class="eyebrow">Detected Automatically</p>
+              <h3>Runtime Environment</h3>
+            </div>
+            <button id="refreshDetection" class="secondary" type="button">Refresh</button>
+          </div>
+          <div class="detected-grid">
+            <label>
+              Browser
+              <input id="browserName" type="text" readonly />
+            </label>
+            <label>
+              Operating system
+              <input id="operatingSystem" type="text" readonly />
+            </label>
+            <label>
+              Screen resolution
+              <input id="screenResolution" type="text" readonly />
+            </label>
+            <label>
+              Viewport size
+              <input id="viewportSize" type="text" readonly />
+            </label>
+            <label>
+              Timezone
+              <input id="timezoneName" type="text" readonly />
+            </label>
+            <label class="span-2">
+              User agent
+              <input id="userAgent" type="text" readonly />
+            </label>
+          </div>
         </div>
       </section>
 
-      <section class="summary-grid" aria-label="QA summary">
-        <article class="summary-card wide">
-          <span>Progress</span>
-          <strong id="progressPercent">0%</strong>
+      <section class="dashboard" aria-label="QA dashboard">
+        <article class="dashboard-card wide">
+          <span>Overall Progress</span>
+          <strong id="overallProgress">0%</strong>
           <div class="progress-track">
-            <div id="progressBar" class="progress-bar"></div>
+            <div id="overallProgressBar" class="progress-bar"></div>
           </div>
         </article>
-        <article class="summary-card">
-          <span>Total</span>
-          <strong id="totalTests">0</strong>
+        <article class="dashboard-card danger">
+          <span>Open Bugs</span>
+          <strong id="openBugs">0</strong>
         </article>
-        <article class="summary-card pass">
-          <span>Passed</span>
+        <article class="dashboard-card warning">
+          <span>Retesting</span>
+          <strong id="retestingBugs">0</strong>
+        </article>
+        <article class="dashboard-card pass">
+          <span>Closed</span>
+          <strong id="closedBugs">0</strong>
+        </article>
+        <article class="dashboard-card blocker">
+          <span>MVP Blockers</span>
+          <strong id="mvpBlockers">0</strong>
+        </article>
+        <article class="dashboard-card critical">
+          <span>Critical</span>
+          <strong id="criticalPriority">0</strong>
+        </article>
+        <article class="dashboard-card high">
+          <span>High</span>
+          <strong id="highPriority">0</strong>
+        </article>
+        <article class="dashboard-card medium">
+          <span>Medium</span>
+          <strong id="mediumPriority">0</strong>
+        </article>
+        <article class="dashboard-card low">
+          <span>Low</span>
+          <strong id="lowPriority">0</strong>
+        </article>
+        <article class="dashboard-card pass">
+          <span>Passed Tests</span>
           <strong id="passedTests">0</strong>
         </article>
-        <article class="summary-card fail">
-          <span>Failed</span>
+        <article class="dashboard-card fail">
+          <span>Failed Tests</span>
           <strong id="failedTests">0</strong>
         </article>
-        <article class="summary-card">
-          <span>Not tested</span>
+        <article class="dashboard-card">
+          <span>Not Tested</span>
           <strong id="notTestedTests">0</strong>
         </article>
-        <article class="summary-card blocker">
-          <span>MVP blockers</span>
-          <strong id="blockerCount">0</strong>
-        </article>
-        <article class="summary-card bug">
-          <span>Bugs</span>
-          <strong id="bugCount">0</strong>
-        </article>
-        <article class="summary-card ux">
-          <span>UX improvements</span>
-          <strong id="uxCount">0</strong>
-        </article>
-        <article class="summary-card post">
-          <span>Post-MVP</span>
-          <strong id="postMvpCount">0</strong>
-        </article>
+      </section>
+
+      <section class="panel" aria-labelledby="section-progress-title">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Coverage</p>
+            <h2 id="section-progress-title">Progress Per Section</h2>
+          </div>
+        </div>
+        <div id="sectionProgress" class="section-progress"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="bug-search-title">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Bug Triage</p>
+            <h2 id="bug-search-title">Search and Filtering</h2>
+          </div>
+        </div>
+        <div class="filter-grid">
+          <label>
+            Search
+            <input id="bugSearch" type="search" placeholder="Bug ID, title, notes..." />
+          </label>
+          <label>
+            Module
+            <select id="filterModule"></select>
+          </label>
+          <label>
+            Severity
+            <select id="filterSeverity"></select>
+          </label>
+          <label>
+            Priority
+            <select id="filterPriority"></select>
+          </label>
+          <label>
+            Status
+            <select id="filterStatus"></select>
+          </label>
+          <label>
+            Bug state
+            <select id="filterBugState">
+              <option value="">All bugs</option>
+              <option value="open">Open bugs</option>
+              <option value="closed">Closed bugs</option>
+            </select>
+          </label>
+        </div>
+        <div id="bugList" class="bug-list"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="evidence-title">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Evidence Gallery</p>
+            <h2 id="evidence-title">Bug Screenshots</h2>
+          </div>
+        </div>
+        <div id="evidenceGallery" class="evidence-gallery"></div>
       </section>
 
       <section id="checklist" class="checklist" aria-label="Reading QA checklist"></section>
@@ -121,11 +246,17 @@
     <template id="cardTemplate">
       <article class="qa-card">
         <div class="card-top">
-          <h3></h3>
-          <div class="status-toggle" role="group" aria-label="Test result">
-            <button type="button" data-status-button="Pass">Pass</button>
-            <button type="button" data-status-button="Fail">Fail</button>
-            <button type="button" data-status-button="Not Tested">Not Tested</button>
+          <div>
+            <p class="bug-id" data-bug-id></p>
+            <h3></h3>
+          </div>
+          <div class="card-actions">
+            <button class="secondary" type="button" data-action="export-bug">Export Bug</button>
+            <div class="status-toggle" role="group" aria-label="Test result">
+              <button type="button" data-status-button="Pass">Pass</button>
+              <button type="button" data-status-button="Fail">Fail</button>
+              <button type="button" data-status-button="Not Tested">Not Tested</button>
+            </div>
           </div>
         </div>
 
@@ -141,8 +272,28 @@
             </select>
           </label>
           <label>
+            Priority
+            <select data-field="priority">
+              <option value="">Select priority</option>
+              <option value="Critical">Critical</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </label>
+          <label>
             Category
             <select data-field="category"></select>
+          </label>
+          <label>
+            Reproducibility
+            <select data-field="reproducibility">
+              <option value="">Select reproducibility</option>
+              <option value="Always">Always</option>
+              <option value="Sometimes">Sometimes</option>
+              <option value="Rare">Rare</option>
+              <option value="Unable to Reproduce">Unable to Reproduce</option>
+            </select>
           </label>
           <label>
             Status
@@ -177,7 +328,33 @@
             Recommendation
             <textarea data-field="recommendation" rows="3"></textarea>
           </label>
+          <label>
+            Developer Console Output
+            <textarea data-field="developerConsole" rows="3"></textarea>
+          </label>
         </div>
+
+        <details class="architect-notes">
+          <summary>Architect Notes</summary>
+          <div class="text-grid">
+            <label>
+              Architect Recommendation
+              <textarea data-field="architectRecommendation" rows="3"></textarea>
+            </label>
+            <label>
+              Possible Root Cause
+              <textarea data-field="possibleRootCause" rows="3"></textarea>
+            </label>
+            <label>
+              Suggested Investigation
+              <textarea data-field="suggestedInvestigation" rows="3"></textarea>
+            </label>
+            <label>
+              Suggested Files
+              <textarea data-field="suggestedFiles" rows="3"></textarea>
+            </label>
+          </div>
+        </details>
 
         <div class="screenshot-area" tabindex="0">
           <div>
