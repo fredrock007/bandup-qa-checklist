@@ -18,7 +18,7 @@ https://fredrock007.github.io/bandup-qa-checklist/
 
 ## Purpose
 
-Version 3 is the Release Candidate intended for real-world BandUp Reading manual QA.
+Version 4 refines the release candidate around a Founder-first testing experience.
 
 The original Version 1 app was a Reading QA checklist.
 
@@ -36,6 +36,15 @@ Version 2 evolves it into a small QA management application that supports:
 - future Supabase synchronization without redesigning the UI
 
 Version 3 refines it into an Engineering Workspace with scoped bug actions, selected-bug handoff, JSON session backup/restore, and release decision reports.
+
+Version 4 keeps the engineering power but changes the default experience:
+
+- Testing Mode is the default.
+- The Founder starts with "What would you like to test?"
+- Checklist items are plain English.
+- Passing a test is just ticking a checkbox.
+- Problem details appear only after clicking Report Problem.
+- Engineering tools are hidden until the Engineering Workspace is opened.
 
 ## Current Scope
 
@@ -59,9 +68,49 @@ Only Reading is populated in this version.
 
 ## Core Features
 
+### Testing Mode
+
+Testing Mode is where most QA work should happen.
+
+The default screen shows:
+
+- module selection
+- simple progress
+- tester/device/environment fields
+- collapsible checklist sections
+
+Each checklist item shows only:
+
+- checkbox
+- plain-English test description
+- optional note
+- optional screenshot
+- Report Problem
+
+When a problem is reported, the detailed bug fields appear.
+
+This keeps normal testing calm and focused while preserving the full engineering workflow.
+
+### Engineering Workspace
+
+The Engineering Workspace is used after testing or when reviewing failures.
+
+It contains:
+
+- build/session metadata
+- environment details
+- bug dashboard
+- report generators
+- documentation generators
+- Codex task generators
+- GitHub Markdown generators
+- JSON backup and restore
+- bug triage
+- evidence gallery
+
 ### QA Session Header
 
-The session header records:
+The session and workspace metadata records:
 
 - project name
 - module
@@ -180,7 +229,7 @@ Bug filtering supports:
 - closed bugs
 - bug ID search
 
-### Engineering Workspace
+### Engineering Workspace Exports
 
 The Engineering Workspace turns QA sessions into engineering artifacts without modifying project files.
 
@@ -432,7 +481,7 @@ Possible future generated actions:
 
 ## Release Candidate Status
 
-Version 3 is intended to be the final planned feature milestone before production use.
+Version 4 is intended to be the final planned UX milestone before production use.
 
 Future changes should be driven by real QA usage and confirmed defects, not speculative feature expansion.
 

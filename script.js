@@ -580,6 +580,24 @@ const Renderer = {
           module.populated ? "" : " (coming later)"
         }</option>`,
     ).join("");
+
+    const tiles = document.getElementById("moduleTiles");
+    tiles.innerHTML = MODULES.map(
+      (module) => `
+        <button class="module-tile ${module.key === state.session.moduleName ? "active" : ""}" type="button" data-module-tile="${module.key}">
+          <strong>${Utils.escapeHtml(module.name)}</strong>
+          <span>${module.populated ? "Ready to test" : "Coming later"}</span>
+        </button>
+      `,
+    ).join("");
+    tiles.querySelectorAll("[data-module-tile]").forEach((button) => {
+      button.addEventListener("click", () => {
+        state.session.moduleName = button.dataset.moduleTile;
+        persist();
+        this.renderModuleOptions();
+        this.renderAll();
+      });
+    });
   },
 
   renderFilterOptions() {
@@ -599,6 +617,7 @@ const Renderer = {
       input.addEventListener("input", () => {
         state.session[field] = input.value;
         if (field === "moduleName") {
+          this.renderModuleOptions();
           this.renderAll();
         }
         persist();
@@ -615,6 +634,12 @@ const Renderer = {
   },
 
   bindGlobalActions() {
+    document.getElementById("testingModeButton").addEventListener("click", () => {
+      setMode("testing");
+    });
+    document.getElementById("engineeringModeButton").addEventListener("click", () => {
+      setMode("engineering");
+    });
     document.getElementById("exportMarkdown").addEventListener("click", () => {
       Utils.download("bandup-qa-report.md", Exporter.buildMarkdownReport(), "text/markdown");
     });
@@ -760,6 +785,7 @@ const Renderer = {
     const output = document.getElementById("generatedExport");
     output.value = markdown;
     output.dataset.exportKey = key;
+    setMode("engineering");
     Utils.toast(GENERATED_EXPORTS[key].title);
   },
 
@@ -813,8 +839,25 @@ const Renderer = {
         const item = QAState.getItem(entry.id, entry);
         const card = template.content.firstElementChild.cloneNode(true);
         card.dataset.id = entry.id;
-        card.querySelector("h3").textContent = title;
+        card.querySelector(".checkline span").textContent = title;
         this.renderBugId(card, item);
+        card.classList.toggle("passed", item.result === "Pass");
+        card.classList.toggle("failed", item.result === "Fail");
+
+        const checkbox = card.querySelector('[data-action="toggle-pass"]');
+        checkbox.checked = item.result === "Pass";
+        checkbox.addEventListener("change", () => {
+          QAState.setResult(item, module.key, checkbox.checked ? "Pass" : "Not Tested");
+          persistAndRender();
+        });
+
+        const problemPanel = card.querySelector("[data-problem-panel]");
+        problemPanel.classList.toggle("hidden", item.result !== "Fail" && !item.bugId);
+
+        card.querySelector('[data-action="report-problem"]').addEventListener("click", () => {
+          QAState.setResult(item, module.key, "Fail");
+          persistAndRender();
+        });
 
         card.addEventListener("focusin", () => {
           focusedCardId = entry.id;
@@ -845,14 +888,6 @@ const Renderer = {
           const bug = ensureBugForCard(item, entry);
           if (!bug) return;
           this.setGeneratedExport("githubIssue", Exporter.buildGithubIssue([bug]));
-        });
-
-        card.querySelectorAll("[data-status-button]").forEach((button) => {
-          button.classList.toggle("active", button.dataset.statusButton === item.result);
-          button.addEventListener("click", () => {
-            QAState.setResult(item, module.key, button.dataset.statusButton);
-            persistAndRender();
-          });
         });
 
         card.querySelectorAll("[data-field]").forEach((field) => {
@@ -914,8 +949,13 @@ const Renderer = {
 
   renderDashboard() {
     const stats = QAState.getStats();
+    const module = QAState.getCurrentModule();
+    setText("activeModuleEyebrow", `${module.name} Module`);
     setText("overallProgress", `${stats.progress}%`);
     document.getElementById("overallProgressBar").style.width = `${stats.progress}%`;
+    setText("engineeringProgress", `${stats.progress}%`);
+    document.getElementById("engineeringProgressBar").style.width = `${stats.progress}%`;
+    setText("friendlyProgressText", `${stats.passed + stats.failed} / ${stats.total} completed`);
     setText("openBugs", stats.openBugs);
     setText("retestingBugs", stats.retesting);
     setText("closedBugs", stats.closed);
@@ -934,10 +974,11 @@ const Renderer = {
     container.innerHTML = QAState.getSections()
       .map((section) => {
         const stats = QAState.sectionStats(section);
+        const complete = stats.progress === 100;
         return `
           <article class="section-progress-card">
             <div>
-              <strong>${Utils.escapeHtml(section.section)}</strong>
+              <strong>${complete ? "✓ " : ""}${Utils.escapeHtml(section.section)}</strong>
               <span>${stats.completed}/${stats.total} complete</span>
             </div>
             <div class="mini-progress">
@@ -1785,6 +1826,14 @@ function fillSelect(id, labels, values) {
 
 function setText(id, value) {
   document.getElementById(id).textContent = value;
+}
+
+function setMode(mode) {
+  const testing = mode === "testing";
+  document.getElementById("testingMode").classList.toggle("hidden", !testing);
+  document.getElementById("engineeringMode").classList.toggle("hidden", testing);
+  document.getElementById("testingModeButton").classList.toggle("active", testing);
+  document.getElementById("engineeringModeButton").classList.toggle("active", !testing);
 }
 
 function hasArchitectNotes(item) {

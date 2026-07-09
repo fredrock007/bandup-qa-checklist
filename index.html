@@ -9,43 +9,45 @@
   <body>
     <header class="app-header">
       <div>
-        <p class="eyebrow">QA Management System</p>
+        <p class="eyebrow">Manual QA</p>
         <h1>BandUp QA Manager</h1>
-        <p class="header-copy">
-          Static browser-based QA management for BandUp manual testing, bug evidence,
-          and developer handoff.
-        </p>
+        <p class="header-copy">A calm checklist for testing BandUp, with engineering tools available when needed.</p>
       </div>
-      <div class="header-actions">
-        <button id="exportMarkdown" type="button">Export Report</button>
-        <button id="exportHtml" type="button">Export HTML</button>
-        <button id="printReport" type="button">Print / PDF</button>
-        <button id="resetAll" class="danger" type="button">Reset</button>
+      <div class="mode-switch" role="group" aria-label="Application mode">
+        <button id="testingModeButton" class="active" type="button">Testing Mode</button>
+        <button id="engineeringModeButton" class="secondary" type="button">Engineering Workspace</button>
       </div>
     </header>
 
     <main>
-      <section class="panel session-panel" aria-labelledby="session-title">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Test Session</p>
-            <h2 id="session-title">Project, Build, and Environment</h2>
-          </div>
-          <span id="saveState" class="save-state">Saved locally</span>
-        </div>
+      <section id="testingMode" class="mode-panel">
+        <section class="welcome-panel" aria-labelledby="module-picker-title">
+          <p class="eyebrow">Start Here</p>
+          <h2 id="module-picker-title">What would you like to test?</h2>
+          <div id="moduleTiles" class="module-tiles"></div>
+        </section>
 
-        <div class="session-grid">
-          <label>
-            Project name
-            <input id="projectName" type="text" value="BandUp" />
-          </label>
-          <label>
-            Module
-            <select id="moduleName"></select>
-          </label>
+        <section class="testing-summary" aria-label="Testing progress">
+          <div>
+            <p class="eyebrow" id="activeModuleEyebrow">Reading Module</p>
+            <h2>Progress</h2>
+          </div>
+          <strong id="overallProgress">0%</strong>
+          <div class="progress-track">
+            <div id="overallProgressBar" class="progress-bar"></div>
+          </div>
+          <p id="friendlyProgressText">0 / 0 completed</p>
+          <div id="sectionProgress" class="section-progress simple"></div>
+        </section>
+
+        <section class="session-strip" aria-label="Session details">
           <label>
             Tester
-            <input id="testerName" type="text" placeholder="Tester name" />
+            <input id="testerName" type="text" placeholder="Your name" />
+          </label>
+          <label>
+            Device
+            <input id="deviceName" type="text" placeholder="Laptop, phone, tablet..." />
           </label>
           <label>
             Environment
@@ -55,407 +57,429 @@
               <option value="Production">Production</option>
             </select>
           </label>
-          <label>
-            Git commit
-            <input id="gitCommit" type="text" placeholder="Commit hash" />
-          </label>
-          <label>
-            Branch
-            <input id="branchName" type="text" placeholder="main" />
-          </label>
-          <label>
-            Version
-            <input id="versionName" type="text" placeholder="MVP QA, v1.0..." />
-          </label>
-          <label>
-            Build date
-            <input id="buildDate" type="date" />
-          </label>
-          <label>
-            Build time
-            <input id="buildTime" type="time" />
-          </label>
-          <label>
-            Test date
-            <input id="testDate" type="date" />
-          </label>
-          <label>
-            Test time
-            <input id="testTime" type="time" />
-          </label>
-          <label>
-            Device
-            <input id="deviceName" type="text" placeholder="Desktop, iPhone, Android..." />
-          </label>
-        </div>
+          <span id="saveState" class="save-state">Saved locally</span>
+        </section>
 
-        <div class="detected-panel">
-          <div class="section-title compact">
+        <section id="checklist" class="checklist" aria-label="QA checklist"></section>
+      </section>
+
+      <section id="engineeringMode" class="mode-panel hidden">
+        <section class="panel session-panel" aria-labelledby="session-title">
+          <div class="section-title">
             <div>
-              <p class="eyebrow">Detected Automatically</p>
-              <h3>Runtime Environment</h3>
+              <p class="eyebrow">Engineering Workspace</p>
+              <h2 id="session-title">Session, Build, and Environment</h2>
             </div>
-            <button id="refreshDetection" class="secondary" type="button">Refresh</button>
+            <button id="resetAll" class="danger" type="button">Reset Session</button>
           </div>
-          <div class="detected-grid">
+
+          <div class="session-grid">
             <label>
-              Browser
-              <input id="browserName" type="text" readonly />
-            </label>
-            <label>
-              Operating system
-              <input id="operatingSystem" type="text" readonly />
+              Project name
+              <input id="projectName" type="text" value="BandUp" />
             </label>
             <label>
-              Screen resolution
-              <input id="screenResolution" type="text" readonly />
+              Module
+              <select id="moduleName"></select>
             </label>
             <label>
-              Viewport size
-              <input id="viewportSize" type="text" readonly />
+              Git commit
+              <input id="gitCommit" type="text" placeholder="Commit hash" />
             </label>
             <label>
-              Timezone
-              <input id="timezoneName" type="text" readonly />
+              Branch
+              <input id="branchName" type="text" placeholder="main" />
             </label>
-            <label class="span-2">
-              User agent
-              <input id="userAgent" type="text" readonly />
+            <label>
+              Version
+              <input id="versionName" type="text" placeholder="MVP QA, v1.0..." />
+            </label>
+            <label>
+              Build date
+              <input id="buildDate" type="date" />
+            </label>
+            <label>
+              Build time
+              <input id="buildTime" type="time" />
+            </label>
+            <label>
+              Test date
+              <input id="testDate" type="date" />
+            </label>
+            <label>
+              Test time
+              <input id="testTime" type="time" />
             </label>
           </div>
-        </div>
-      </section>
 
-      <section class="dashboard" aria-label="QA dashboard">
-        <article class="dashboard-card wide">
-          <span>Overall Progress</span>
-          <strong id="overallProgress">0%</strong>
-          <div class="progress-track">
-            <div id="overallProgressBar" class="progress-bar"></div>
-          </div>
-        </article>
-        <article class="dashboard-card danger">
-          <span>Open Bugs</span>
-          <strong id="openBugs">0</strong>
-        </article>
-        <article class="dashboard-card warning">
-          <span>Retesting</span>
-          <strong id="retestingBugs">0</strong>
-        </article>
-        <article class="dashboard-card pass">
-          <span>Closed</span>
-          <strong id="closedBugs">0</strong>
-        </article>
-        <article class="dashboard-card blocker">
-          <span>MVP Blockers</span>
-          <strong id="mvpBlockers">0</strong>
-        </article>
-        <article class="dashboard-card critical">
-          <span>Critical</span>
-          <strong id="criticalPriority">0</strong>
-        </article>
-        <article class="dashboard-card high">
-          <span>High</span>
-          <strong id="highPriority">0</strong>
-        </article>
-        <article class="dashboard-card medium">
-          <span>Medium</span>
-          <strong id="mediumPriority">0</strong>
-        </article>
-        <article class="dashboard-card low">
-          <span>Low</span>
-          <strong id="lowPriority">0</strong>
-        </article>
-        <article class="dashboard-card pass">
-          <span>Passed Tests</span>
-          <strong id="passedTests">0</strong>
-        </article>
-        <article class="dashboard-card fail">
-          <span>Failed Tests</span>
-          <strong id="failedTests">0</strong>
-        </article>
-        <article class="dashboard-card">
-          <span>Not Tested</span>
-          <strong id="notTestedTests">0</strong>
-        </article>
-      </section>
-
-      <section class="panel" aria-labelledby="section-progress-title">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Coverage</p>
-            <h2 id="section-progress-title">Progress Per Section</h2>
-          </div>
-        </div>
-        <div id="sectionProgress" class="section-progress"></div>
-      </section>
-
-      <section class="panel export-centre" aria-labelledby="engineering-workspace-title">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Engineering Handover</p>
-            <h2 id="engineering-workspace-title">Engineering Workspace</h2>
-          </div>
-        </div>
-
-        <div class="export-grid">
-          <article class="export-card">
-            <p class="eyebrow">QA Reports</p>
-            <h3>Session Reports</h3>
-            <p>Export complete QA results for review, printing, or PDF handoff.</p>
-            <div class="export-actions">
-              <button id="exportFullQaReport" type="button">Export Full QA Report</button>
-              <button id="exportPrintableHtml" type="button">Export Printable HTML</button>
-              <button id="printFromExportCentre" type="button">Print / Save PDF</button>
+          <div class="detected-panel">
+            <div class="section-title compact">
+              <div>
+                <p class="eyebrow">Detected Automatically</p>
+                <h3>Runtime Environment</h3>
+              </div>
+              <button id="refreshDetection" class="secondary" type="button">Refresh</button>
             </div>
-          </article>
-
-          <article class="export-card">
-            <p class="eyebrow">Engineering Documentation</p>
-            <h3>Generated Updates</h3>
-            <p>Generate proposed Markdown updates. The QA Manager never overwrites project docs.</p>
-            <div class="export-actions">
-              <button id="exportProjectStatusUpdate" type="button">Generate PROJECT_STATUS Update</button>
-              <button id="exportSprintUpdate" type="button">Generate NEXT_DEVELOPMENT_SPRINT Update</button>
-              <button id="exportQaSummary" type="button">Generate QA Summary</button>
-              <button id="exportBugsReport" type="button">Generate Bugs Report</button>
-              <button id="generateReleaseRecommendation" type="button">Generate Release Recommendation</button>
-              <button id="generateArchitectReview" type="button">Generate Architect Review</button>
-            </div>
-          </article>
-
-          <article class="export-card">
-            <p class="eyebrow">AI Tasks</p>
-            <h3>Selected Bug Handoff</h3>
-            <p>Generate focused AI-ready task documents for selected bugs only.</p>
-            <div class="export-actions">
-              <button id="prepareCodexTask" type="button">Prepare Codex Task</button>
-              <button id="prepareSelectedCodexTask" type="button">Prepare Selected Codex Task</button>
-              <button id="generateSelectedArchitectReview" type="button">Generate Selected Architect Review</button>
-              <button id="exportSelectedBugs" type="button">Export Selected Bugs</button>
-            </div>
-          </article>
-
-          <article class="export-card">
-            <p class="eyebrow">GitHub</p>
-            <h3>Markdown Generators</h3>
-            <p>Generate professional Markdown for GitHub workflows without using GitHub APIs.</p>
-            <div class="export-actions">
-              <button id="generateGithubIssue" type="button">Generate GitHub Issue</button>
-              <button id="generateGithubIssues" type="button">Generate GitHub Issues</button>
-              <button id="generatePullRequestDescription" type="button">Generate Pull Request Description</button>
-              <button id="generateReleaseNotes" type="button">Generate Release Notes</button>
-              <button id="generateChangelogEntry" type="button">Generate Changelog Entry</button>
-            </div>
-          </article>
-
-          <article class="export-card">
-            <p class="eyebrow">Backup & Restore</p>
-            <h3>Session Data</h3>
-            <p>Backup or restore the complete local QA session, including screenshots and bug IDs.</p>
-            <div class="export-actions">
-              <button id="exportSessionJson" type="button">Export Session (.json)</button>
-              <label class="import-button">
-                Import Session (.json)
-                <input id="importSessionJson" type="file" accept="application/json,.json" />
+            <div class="detected-grid">
+              <label>
+                Browser
+                <input id="browserName" type="text" readonly />
+              </label>
+              <label>
+                Operating system
+                <input id="operatingSystem" type="text" readonly />
+              </label>
+              <label>
+                Screen resolution
+                <input id="screenResolution" type="text" readonly />
+              </label>
+              <label>
+                Viewport size
+                <input id="viewportSize" type="text" readonly />
+              </label>
+              <label>
+                Timezone
+                <input id="timezoneName" type="text" readonly />
+              </label>
+              <label class="span-2">
+                User agent
+                <input id="userAgent" type="text" readonly />
               </label>
             </div>
+          </div>
+        </section>
+
+        <section class="dashboard" aria-label="QA dashboard">
+          <article class="dashboard-card wide">
+            <span>Overall Progress</span>
+            <strong id="engineeringProgress">0%</strong>
+            <div class="progress-track">
+              <div id="engineeringProgressBar" class="progress-bar"></div>
+            </div>
           </article>
-        </div>
+          <article class="dashboard-card danger">
+            <span>Open Bugs</span>
+            <strong id="openBugs">0</strong>
+          </article>
+          <article class="dashboard-card warning">
+            <span>Retesting</span>
+            <strong id="retestingBugs">0</strong>
+          </article>
+          <article class="dashboard-card pass">
+            <span>Closed</span>
+            <strong id="closedBugs">0</strong>
+          </article>
+          <article class="dashboard-card blocker">
+            <span>MVP Blockers</span>
+            <strong id="mvpBlockers">0</strong>
+          </article>
+          <article class="dashboard-card critical">
+            <span>Critical</span>
+            <strong id="criticalPriority">0</strong>
+          </article>
+          <article class="dashboard-card high">
+            <span>High</span>
+            <strong id="highPriority">0</strong>
+          </article>
+          <article class="dashboard-card medium">
+            <span>Medium</span>
+            <strong id="mediumPriority">0</strong>
+          </article>
+          <article class="dashboard-card low">
+            <span>Low</span>
+            <strong id="lowPriority">0</strong>
+          </article>
+          <article class="dashboard-card pass">
+            <span>Passed Tests</span>
+            <strong id="passedTests">0</strong>
+          </article>
+          <article class="dashboard-card fail">
+            <span>Failed Tests</span>
+            <strong id="failedTests">0</strong>
+          </article>
+          <article class="dashboard-card">
+            <span>Not Tested</span>
+            <strong id="notTestedTests">0</strong>
+          </article>
+        </section>
 
-        <div class="generated-output">
-          <label>
-            Generated Markdown
-            <textarea
-              id="generatedExport"
-              rows="12"
-              readonly
-              placeholder="Generated engineering documentation will appear here."
-            ></textarea>
-          </label>
-          <div class="generated-actions">
-            <button id="copyGeneratedExport" class="secondary" type="button">Copy Generated Markdown</button>
-            <button id="downloadGeneratedExport" class="secondary" type="button">Download Generated Markdown</button>
+        <section class="panel export-centre" aria-labelledby="engineering-workspace-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Engineering Handover</p>
+              <h2 id="engineering-workspace-title">Engineering Workspace</h2>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <section class="panel" aria-labelledby="bug-search-title">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Bug Triage</p>
-            <h2 id="bug-search-title">Search and Filtering</h2>
+          <div class="export-grid">
+            <article class="export-card">
+              <p class="eyebrow">QA Reports</p>
+              <h3>Session Reports</h3>
+              <p>Export complete QA results for review, printing, or PDF handoff.</p>
+              <div class="export-actions">
+                <button id="exportMarkdown" type="button">Export Report</button>
+                <button id="exportHtml" type="button">Export HTML</button>
+                <button id="printReport" type="button">Print / PDF</button>
+                <button id="exportFullQaReport" type="button">Export Full QA Report</button>
+                <button id="exportPrintableHtml" type="button">Export Printable HTML</button>
+                <button id="printFromExportCentre" type="button">Print / Save PDF</button>
+              </div>
+            </article>
+
+            <article class="export-card">
+              <p class="eyebrow">Engineering Documentation</p>
+              <h3>Generated Updates</h3>
+              <p>Generate proposed Markdown updates. The QA Manager never overwrites project docs.</p>
+              <div class="export-actions">
+                <button id="exportProjectStatusUpdate" type="button">Generate PROJECT_STATUS Update</button>
+                <button id="exportSprintUpdate" type="button">Generate NEXT_DEVELOPMENT_SPRINT Update</button>
+                <button id="exportQaSummary" type="button">Generate QA Summary</button>
+                <button id="exportBugsReport" type="button">Generate Bugs Report</button>
+                <button id="generateReleaseRecommendation" type="button">Generate Release Recommendation</button>
+                <button id="generateArchitectReview" type="button">Generate Architect Review</button>
+              </div>
+            </article>
+
+            <article class="export-card">
+              <p class="eyebrow">AI Tasks</p>
+              <h3>Selected Bug Handoff</h3>
+              <p>Generate focused AI-ready task documents for selected bugs only.</p>
+              <div class="export-actions">
+                <button id="prepareCodexTask" type="button">Prepare Codex Task</button>
+                <button id="prepareSelectedCodexTask" type="button">Prepare Selected Codex Task</button>
+                <button id="generateSelectedArchitectReview" type="button">Generate Selected Architect Review</button>
+                <button id="exportSelectedBugs" type="button">Export Selected Bugs</button>
+              </div>
+            </article>
+
+            <article class="export-card">
+              <p class="eyebrow">GitHub</p>
+              <h3>Markdown Generators</h3>
+              <p>Generate professional Markdown for GitHub workflows without using GitHub APIs.</p>
+              <div class="export-actions">
+                <button id="generateGithubIssue" type="button">Generate GitHub Issue</button>
+                <button id="generateGithubIssues" type="button">Generate GitHub Issues</button>
+                <button id="generatePullRequestDescription" type="button">Generate Pull Request Description</button>
+                <button id="generateReleaseNotes" type="button">Generate Release Notes</button>
+                <button id="generateChangelogEntry" type="button">Generate Changelog Entry</button>
+              </div>
+            </article>
+
+            <article class="export-card">
+              <p class="eyebrow">Backup & Restore</p>
+              <h3>Session Data</h3>
+              <p>Backup or restore the complete local QA session, including screenshots and bug IDs.</p>
+              <div class="export-actions">
+                <button id="exportSessionJson" type="button">Export Session (.json)</button>
+                <label class="import-button">
+                  Import Session (.json)
+                  <input id="importSessionJson" type="file" accept="application/json,.json" />
+                </label>
+              </div>
+            </article>
           </div>
-        </div>
-        <div class="filter-grid">
-          <label>
-            Search
-            <input id="bugSearch" type="search" placeholder="Bug ID, title, notes..." />
-          </label>
-          <label>
-            Module
-            <select id="filterModule"></select>
-          </label>
-          <label>
-            Severity
-            <select id="filterSeverity"></select>
-          </label>
-          <label>
-            Priority
-            <select id="filterPriority"></select>
-          </label>
-          <label>
-            Status
-            <select id="filterStatus"></select>
-          </label>
-          <label>
-            Bug state
-            <select id="filterBugState">
-              <option value="">All bugs</option>
-              <option value="open">Open bugs</option>
-              <option value="closed">Closed bugs</option>
-            </select>
-          </label>
-        </div>
-        <div id="bugList" class="bug-list"></div>
-      </section>
 
-      <section class="panel" aria-labelledby="evidence-title">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow">Evidence Gallery</p>
-            <h2 id="evidence-title">Bug Screenshots</h2>
+          <div class="generated-output">
+            <label>
+              Generated Markdown
+              <textarea
+                id="generatedExport"
+                rows="12"
+                readonly
+                placeholder="Generated engineering documentation will appear here."
+              ></textarea>
+            </label>
+            <div class="generated-actions">
+              <button id="copyGeneratedExport" class="secondary" type="button">Copy Generated Markdown</button>
+              <button id="downloadGeneratedExport" class="secondary" type="button">Download Generated Markdown</button>
+            </div>
           </div>
-        </div>
-        <div id="evidenceGallery" class="evidence-gallery"></div>
-      </section>
+        </section>
 
-      <section id="checklist" class="checklist" aria-label="Reading QA checklist"></section>
+        <section class="panel" aria-labelledby="bug-search-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Bug Triage</p>
+              <h2 id="bug-search-title">Problems Reported</h2>
+            </div>
+          </div>
+          <div class="filter-grid">
+            <label>
+              Search
+              <input id="bugSearch" type="search" placeholder="Bug ID, title, notes..." />
+            </label>
+            <label>
+              Module
+              <select id="filterModule"></select>
+            </label>
+            <label>
+              Severity
+              <select id="filterSeverity"></select>
+            </label>
+            <label>
+              Priority
+              <select id="filterPriority"></select>
+            </label>
+            <label>
+              Status
+              <select id="filterStatus"></select>
+            </label>
+            <label>
+              Bug state
+              <select id="filterBugState">
+                <option value="">All bugs</option>
+                <option value="open">Open bugs</option>
+                <option value="closed">Closed bugs</option>
+              </select>
+            </label>
+          </div>
+          <div id="bugList" class="bug-list"></div>
+        </section>
+
+        <section class="panel" aria-labelledby="evidence-title">
+          <div class="section-title">
+            <div>
+              <p class="eyebrow">Evidence Gallery</p>
+              <h2 id="evidence-title">Bug Screenshots</h2>
+            </div>
+          </div>
+          <div id="evidenceGallery" class="evidence-gallery"></div>
+        </section>
+      </section>
     </main>
 
     <template id="cardTemplate">
       <article class="qa-card">
-        <div class="card-top">
-          <div>
-            <p class="bug-id" data-bug-id></p>
-            <h3></h3>
-          </div>
-          <div class="card-actions">
-            <button class="secondary" type="button" data-action="export-bug">Export Bug</button>
-            <button class="secondary" type="button" data-action="codex-bug">Prepare Codex Task</button>
-            <button class="secondary" type="button" data-action="architect-bug">Generate Architect Review</button>
-            <button class="secondary" type="button" data-action="github-bug">Generate GitHub Issue</button>
-            <div class="status-toggle" role="group" aria-label="Test result">
-              <button type="button" data-status-button="Pass">Pass</button>
-              <button type="button" data-status-button="Fail">Fail</button>
-              <button type="button" data-status-button="Not Tested">Not Tested</button>
-            </div>
-          </div>
+        <div class="simple-card-row">
+          <label class="checkline">
+            <input type="checkbox" data-action="toggle-pass" />
+            <span></span>
+          </label>
+          <button class="report-button" type="button" data-action="report-problem">Report Problem</button>
         </div>
+        <p class="bug-id" data-bug-id></p>
 
-        <div class="card-grid">
-          <label>
-            Severity
-            <select data-field="severity">
-              <option value="">Select severity</option>
-              <option value="MVP Blocker">MVP Blocker</option>
-              <option value="Bug">Bug</option>
-              <option value="UX Improvement">UX Improvement</option>
-              <option value="Post-MVP Enhancement">Post-MVP Enhancement</option>
-            </select>
-          </label>
-          <label>
-            Priority
-            <select data-field="priority">
-              <option value="">Select priority</option>
-              <option value="Critical">Critical</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
-          </label>
-          <label>
-            Category
-            <select data-field="category"></select>
-          </label>
-          <label>
-            Reproducibility
-            <select data-field="reproducibility">
-              <option value="">Select reproducibility</option>
-              <option value="Always">Always</option>
-              <option value="Sometimes">Sometimes</option>
-              <option value="Rare">Rare</option>
-              <option value="Unable to Reproduce">Unable to Reproduce</option>
-            </select>
-          </label>
-          <label>
-            Status
-            <select data-field="workStatus">
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Fixed">Fixed</option>
-              <option value="Retest Required">Retest Required</option>
-              <option value="Closed">Closed</option>
-            </select>
-          </label>
-        </div>
-
-        <div class="text-grid">
+        <div class="quick-notes">
           <label>
             Notes
-            <textarea data-field="notes" rows="3"></textarea>
-          </label>
-          <label>
-            Expected behaviour
-            <textarea data-field="expected" rows="3"></textarea>
-          </label>
-          <label>
-            Actual behaviour
-            <textarea data-field="actual" rows="3"></textarea>
-          </label>
-          <label>
-            Steps to reproduce
-            <textarea data-field="steps" rows="3"></textarea>
-          </label>
-          <label>
-            Recommendation
-            <textarea data-field="recommendation" rows="3"></textarea>
-          </label>
-          <label>
-            Developer Console Output
-            <textarea data-field="developerConsole" rows="3"></textarea>
+            <textarea data-field="notes" rows="2" placeholder="Optional note for yourself"></textarea>
           </label>
         </div>
 
-        <details class="architect-notes">
-          <summary>Architect Notes</summary>
-          <div class="text-grid">
+        <div class="problem-panel hidden" data-problem-panel>
+          <div class="problem-header">
+            <div>
+              <p class="eyebrow">Problem Details</p>
+              <h3>What went wrong?</h3>
+            </div>
+            <div class="card-actions">
+              <button class="secondary" type="button" data-action="export-bug">Export Bug</button>
+              <button class="secondary" type="button" data-action="codex-bug">Prepare Codex Task</button>
+              <button class="secondary" type="button" data-action="architect-bug">Generate Architect Review</button>
+              <button class="secondary" type="button" data-action="github-bug">Generate GitHub Issue</button>
+            </div>
+          </div>
+
+          <div class="card-grid">
             <label>
-              Architect Recommendation
-              <textarea data-field="architectRecommendation" rows="3"></textarea>
+              Severity
+              <select data-field="severity">
+                <option value="">Select severity</option>
+                <option value="MVP Blocker">MVP Blocker</option>
+                <option value="Bug">Bug</option>
+                <option value="UX Improvement">UX Improvement</option>
+                <option value="Post-MVP Enhancement">Post-MVP Enhancement</option>
+              </select>
             </label>
             <label>
-              Possible Root Cause
-              <textarea data-field="possibleRootCause" rows="3"></textarea>
+              Priority
+              <select data-field="priority">
+                <option value="">Select priority</option>
+                <option value="Critical">Critical</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
             </label>
             <label>
-              Suggested Investigation
-              <textarea data-field="suggestedInvestigation" rows="3"></textarea>
+              Category
+              <select data-field="category"></select>
             </label>
             <label>
-              Suggested Files
-              <textarea data-field="suggestedFiles" rows="3"></textarea>
+              Reproducibility
+              <select data-field="reproducibility">
+                <option value="">Select reproducibility</option>
+                <option value="Always">Always</option>
+                <option value="Sometimes">Sometimes</option>
+                <option value="Rare">Rare</option>
+                <option value="Unable to Reproduce">Unable to Reproduce</option>
+              </select>
+            </label>
+            <label>
+              Status
+              <select data-field="workStatus">
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Fixed">Fixed</option>
+                <option value="Retest Required">Retest Required</option>
+                <option value="Closed">Closed</option>
+              </select>
             </label>
           </div>
-        </details>
+
+          <div class="text-grid">
+            <label>
+              Expected behaviour
+              <textarea data-field="expected" rows="3" placeholder="What should have happened?"></textarea>
+            </label>
+            <label>
+              Actual behaviour
+              <textarea data-field="actual" rows="3" placeholder="What actually happened?"></textarea>
+            </label>
+            <label>
+              Steps to reproduce
+              <textarea data-field="steps" rows="3" placeholder="What did you click or do?"></textarea>
+            </label>
+            <label>
+              Recommendation
+              <textarea data-field="recommendation" rows="3" placeholder="Optional suggestion"></textarea>
+            </label>
+            <label>
+              Developer Console Output
+              <textarea data-field="developerConsole" rows="3" placeholder="Optional console error or stack trace"></textarea>
+            </label>
+          </div>
+
+          <details class="architect-notes">
+            <summary>Architect Notes</summary>
+            <div class="text-grid">
+              <label>
+                Architect Recommendation
+                <textarea data-field="architectRecommendation" rows="3"></textarea>
+              </label>
+              <label>
+                Possible Root Cause
+                <textarea data-field="possibleRootCause" rows="3"></textarea>
+              </label>
+              <label>
+                Suggested Investigation
+                <textarea data-field="suggestedInvestigation" rows="3"></textarea>
+              </label>
+              <label>
+                Suggested Files
+                <textarea data-field="suggestedFiles" rows="3"></textarea>
+              </label>
+            </div>
+          </details>
+        </div>
 
         <div class="screenshot-area" tabindex="0">
           <div>
-            <strong>Screenshots</strong>
-            <p>Paste screenshots while this card is focused, or upload up to 3 images.</p>
+            <strong>Screenshot</strong>
+            <p>Optional. Paste a screenshot here or upload an image.</p>
           </div>
           <label class="upload-button">
-            Upload images
+            Upload
             <input data-field="screenshots" type="file" accept="image/*" multiple />
           </label>
           <div class="screenshot-preview"></div>

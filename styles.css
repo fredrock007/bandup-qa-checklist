@@ -442,33 +442,6 @@ h3 {
   color: var(--fail);
 }
 
-.status-toggle {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.status-toggle button {
-  background: #eef3fb;
-  color: var(--text);
-  padding: 0.5rem 0.72rem;
-}
-
-.status-toggle button.active[data-status-button="Pass"] {
-  background: #d9f6e8;
-  color: #07613c;
-}
-
-.status-toggle button.active[data-status-button="Fail"] {
-  background: #ffe1e1;
-  color: #9d2020;
-}
-
-.status-toggle button.active[data-status-button="Not Tested"] {
-  background: #ebeef5;
-  color: #4a5568;
-}
-
 .card-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -731,13 +704,11 @@ h3 {
     display: grid;
   }
 
-  .header-actions,
-  .status-toggle {
+  .header-actions {
     justify-content: stretch;
   }
 
   .header-actions button,
-  .status-toggle button,
   .card-actions {
     width: 100%;
   }
@@ -783,5 +754,222 @@ h3 {
   .qa-card,
   .dashboard-card {
     box-shadow: none;
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+.mode-switch {
+  background: #e9eef6;
+  border-radius: 999px;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.35rem;
+}
+
+.mode-switch button {
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.mode-switch button:not(.active) {
+  background: transparent;
+  color: var(--muted);
+}
+
+.welcome-panel,
+.testing-summary,
+.session-strip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(23, 32, 51, 0.06);
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+}
+
+.welcome-panel h2 {
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  margin-top: 0.2rem;
+}
+
+.module-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.module-tile {
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+  min-height: 92px;
+  padding: 1rem;
+  text-align: left;
+}
+
+.module-tile:hover,
+.module-tile.active {
+  background: #eef5ff;
+  border-color: #9db9ff;
+  color: var(--text);
+}
+
+.module-tile span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.testing-summary {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.testing-summary > strong {
+  color: var(--brand);
+  font-size: 2rem;
+}
+
+#friendlyProgressText {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.section-progress.simple {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.section-progress.simple .section-progress-card {
+  background: #fff;
+  grid-template-columns: 1fr;
+}
+
+.session-strip {
+  align-items: end;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 1rem;
+}
+
+.checklist {
+  gap: 0.85rem;
+}
+
+.module-section {
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(23, 32, 51, 0.06);
+}
+
+.module-section summary {
+  padding: 1.2rem 1.35rem;
+}
+
+.module-section summary h2 {
+  font-size: 1.2rem;
+}
+
+.section-cards {
+  padding: 0 1.35rem 1.35rem;
+}
+
+.qa-card {
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.qa-card.passed {
+  background: #f3fbf7;
+  border-color: #bcebd3;
+}
+
+.qa-card.failed {
+  background: #fff8f8;
+  border-color: #ffc7c7;
+}
+
+.simple-card-row {
+  align-items: center;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: 1fr auto;
+}
+
+.checkline {
+  align-items: center;
+  color: var(--text);
+  display: flex;
+  font-size: 1rem;
+  font-weight: 800;
+  gap: 0.85rem;
+}
+
+.checkline input {
+  accent-color: var(--pass);
+  height: 28px;
+  width: 28px;
+}
+
+.report-button {
+  background: #fff3e8;
+  color: #9a4a00;
+}
+
+.report-button:hover {
+  background: #ffe3c7;
+  color: #713500;
+}
+
+.quick-notes {
+  margin-top: 0.8rem;
+}
+
+.quick-notes textarea {
+  min-height: 64px;
+}
+
+.problem-panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.problem-header {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr auto;
+  margin-bottom: 1rem;
+}
+
+.problem-header .card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 680px;
+}
+
+.screenshot-area {
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 760px) {
+  .mode-switch,
+  .session-strip,
+  .simple-card-row,
+  .problem-header {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-switch,
+  .problem-header .card-actions {
+    display: grid;
   }
 }
