@@ -20,6 +20,28 @@ const PRIORITIES = ["Critical", "High", "Medium", "Low"];
 const WORK_STATUSES = ["Open", "In Progress", "Fixed", "Retest Required", "Closed"];
 const BUG_CLOSED_STATUSES = new Set(["Closed"]);
 const BUG_OPEN_STATUSES = new Set(["Open", "In Progress", "Fixed", "Retest Required"]);
+const GENERATED_EXPORTS = {
+  projectStatus: {
+    filename: "project-status-qa-update.md",
+    title: "PROJECT_STATUS.md update generated.",
+  },
+  sprint: {
+    filename: "next-development-sprint-qa-update.md",
+    title: "NEXT_DEVELOPMENT_SPRINT.md update generated.",
+  },
+  summary: {
+    filename: "qa-executive-summary.md",
+    title: "QA summary generated.",
+  },
+  bugs: {
+    filename: "unresolved-bugs-report.md",
+    title: "Bugs-only report generated.",
+  },
+  codex: {
+    filename: "codex-qa-task.md",
+    title: "Codex task generated.",
+  },
+};
 
 const QA_DATA = {
   reading: [
@@ -357,6 +379,49 @@ const QAState = {
       .sort((a, b) => a.item.bugId.localeCompare(b.item.bugId));
   },
 
+  getUnresolvedBugs() {
+    return this.getBugs().filter(({ item }) => !BUG_CLOSED_STATUSES.has(item.workStatus));
+  },
+
+  getPrioritizedWork() {
+    const unresolved = this.getUnresolvedBugs();
+    const groups = [
+      {
+        title: "MVP blockers",
+        bugs: unresolved.filter(({ item }) => item.severity === "MVP Blocker"),
+      },
+      {
+        title: "Critical bugs",
+        bugs: unresolved.filter(
+          ({ item }) => item.priority === "Critical" && item.severity !== "MVP Blocker",
+        ),
+      },
+      {
+        title: "High priority bugs",
+        bugs: unresolved.filter(
+          ({ item }) => item.priority === "High" && item.severity !== "MVP Blocker",
+        ),
+      },
+      {
+        title: "Retesting",
+        bugs: unresolved.filter(({ item }) => item.workStatus === "Retest Required"),
+      },
+      {
+        title: "UX improvements",
+        bugs: unresolved.filter(({ item }) => item.severity === "UX Improvement"),
+      },
+      {
+        title: "Post-MVP enhancements",
+        bugs: unresolved.filter(({ item }) => item.severity === "Post-MVP Enhancement"),
+      },
+    ];
+
+    return groups.map((group) => ({
+      ...group,
+      bugs: uniqueBugs(group.bugs),
+    }));
+  },
+
   getStats() {
     const entries = this.getAllChecklistEntries();
     const items = entries.map((entry) => this.getItem(entry.id, entry));
@@ -494,6 +559,53 @@ const Renderer = {
       reportWindow.focus();
       reportWindow.print();
     });
+    document.getElementById("exportFullQaReport").addEventListener("click", () => {
+      Utils.download("bandup-qa-report.md", Exporter.buildMarkdownReport(), "text/markdown");
+    });
+    document.getElementById("exportPrintableHtml").addEventListener("click", () => {
+      Utils.download("bandup-qa-report.html", Exporter.buildHtmlReport(), "text/html");
+    });
+    document.getElementById("printFromExportCentre").addEventListener("click", () => {
+      const html = Exporter.buildHtmlReport();
+      const reportWindow = window.open("", "_blank");
+      reportWindow.document.write(html);
+      reportWindow.document.close();
+      reportWindow.focus();
+      reportWindow.print();
+    });
+    document.getElementById("exportProjectStatusUpdate").addEventListener("click", () => {
+      this.setGeneratedExport("projectStatus", Exporter.buildProjectStatusUpdate());
+    });
+    document.getElementById("exportSprintUpdate").addEventListener("click", () => {
+      this.setGeneratedExport("sprint", Exporter.buildSprintUpdate());
+    });
+    document.getElementById("exportQaSummary").addEventListener("click", () => {
+      this.setGeneratedExport("summary", Exporter.buildQaSummary());
+    });
+    document.getElementById("exportBugsReport").addEventListener("click", () => {
+      this.setGeneratedExport("bugs", Exporter.buildBugsOnlyReport());
+    });
+    document.getElementById("prepareCodexTask").addEventListener("click", () => {
+      this.setGeneratedExport("codex", Exporter.buildCodexTask());
+    });
+    document.getElementById("copyGeneratedExport").addEventListener("click", async () => {
+      const output = document.getElementById("generatedExport").value;
+      if (!output) {
+        Utils.toast("Generate an engineering export first.");
+        return;
+      }
+      await navigator.clipboard.writeText(output);
+      Utils.toast("Generated Markdown copied.");
+    });
+    document.getElementById("downloadGeneratedExport").addEventListener("click", () => {
+      const output = document.getElementById("generatedExport").value;
+      if (!output) {
+        Utils.toast("Generate an engineering export first.");
+        return;
+      }
+      const key = document.getElementById("generatedExport").dataset.exportKey || "summary";
+      Utils.download(GENERATED_EXPORTS[key].filename, output, "text/markdown");
+    });
     document.getElementById("resetAll").addEventListener("click", () => {
       const confirmed = window.confirm("Reset all QA Manager data stored in this browser?");
       if (!confirmed) return;
@@ -511,6 +623,13 @@ const Renderer = {
       .forEach((id) => document.getElementById(id).addEventListener("input", () => {
         this.renderBugList();
       }));
+  },
+
+  setGeneratedExport(key, markdown) {
+    const output = document.getElementById("generatedExport");
+    output.value = markdown;
+    output.dataset.exportKey = key;
+    Utils.toast(GENERATED_EXPORTS[key].title);
   },
 
   renderChecklist() {
@@ -751,6 +870,156 @@ const Renderer = {
 };
 
 const Exporter = {
+  buildProjectStatusUpdate() {
+    const stats = QAState.getStats();
+    const module = QAState.getCurrentModule();
+    return [
+      `# PROJECT_STATUS.md Update - ${module.name} Manual QA`,
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+      "## Manual QA Session",
+      "",
+      `Module: ${module.name}`,
+      `Date: ${state.session.testDate || "Not specified"}`,
+      `Commit: ${state.session.gitCommit || "Not specified"}`,
+      `Build: ${this.buildLabel()}`,
+      `Environment: ${state.session.environmentName}`,
+      "",
+      "## Results",
+      "",
+      `- Tests executed: ${stats.passed + stats.failed} / ${stats.total}`,
+      `- Passed: ${stats.passed}`,
+      `- Failed: ${stats.failed}`,
+      `- Not tested: ${stats.notTested}`,
+      `- MVP blockers: ${stats.mvpBlockers}`,
+      `- Open bugs: ${stats.openBugs}`,
+      `- Closed bugs: ${stats.closed}`,
+      `- Overall recommendation: ${this.overallRecommendation(stats)}`,
+      `- QA completion status: ${this.completionStatus(stats)}`,
+      "",
+      "## Governance Note",
+      "",
+      "This is a generated update section only. It should be reviewed by Codex and the Principal Software Architect before being pasted into `PROJECT_STATUS.md`.",
+      "",
+    ].join("\n");
+  },
+
+  buildSprintUpdate() {
+    const groups = QAState.getPrioritizedWork();
+    const lines = [
+      "# NEXT_DEVELOPMENT_SPRINT.md Update - QA Follow-up",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+      "## Remaining Engineering Work",
+      "",
+      "Automatically prioritized from unresolved QA findings:",
+      "",
+    ];
+
+    groups.forEach((group, index) => {
+      lines.push(`### ${index + 1}. ${group.title}`, "");
+      if (!group.bugs.length) {
+        lines.push("No items recorded.", "");
+        return;
+      }
+      group.bugs.forEach((bug) => {
+        lines.push(this.bugSummaryLine(bug));
+      });
+      lines.push("");
+    });
+
+    lines.push(
+      "## Governance Note",
+      "",
+      "This is a generated proposal only. Codex remains responsible for reviewing, editing, committing, pushing, and synchronizing documentation after approval.",
+      "",
+    );
+    return lines.join("\n");
+  },
+
+  buildQaSummary() {
+    const stats = QAState.getStats();
+    return [
+      "# QA Executive Summary",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+      "## Testing Coverage",
+      "",
+      `Testing coverage is ${stats.progress}% for the current ${QAState.getCurrentModule().name} checklist.`,
+      `${stats.passed + stats.failed} of ${stats.total} tests have been executed.`,
+      "",
+      "## Current Stability",
+      "",
+      this.stabilitySummary(stats),
+      "",
+      "## Major Risks",
+      "",
+      this.majorRisks(stats),
+      "",
+      "## Recommendation",
+      "",
+      this.overallRecommendation(stats),
+      "",
+      "## Release Readiness",
+      "",
+      this.releaseReadiness(stats),
+      "",
+    ].join("\n");
+  },
+
+  buildBugsOnlyReport() {
+    const bugs = QAState.getUnresolvedBugs();
+    const lines = [
+      "# Unresolved Bugs Report",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+    ];
+
+    if (!bugs.length) {
+      lines.push("No unresolved bugs recorded.", "");
+      return lines.join("\n");
+    }
+
+    bugs.forEach((bug) => {
+      lines.push(...this.bugDetailBlock(bug), "");
+    });
+
+    return lines.join("\n");
+  },
+
+  buildCodexTask() {
+    const bugs = QAState.getUnresolvedBugs();
+    const lines = [
+      "# Codex QA Bug-Fix Task",
+      "",
+      "Codex,",
+      "",
+      "MVP QA has identified the following unresolved issues. Investigate only the listed issues. Preserve existing architecture and avoid unrelated changes.",
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      "",
+    ];
+
+    if (!bugs.length) {
+      lines.push("No unresolved bugs are currently recorded.", "");
+    } else {
+      bugs.forEach((bug) => {
+        lines.push(...this.codexBugBlock(bug), "");
+      });
+    }
+
+    lines.push(
+      "Please investigate the root cause, propose the smallest safe implementation, verify the fix, update all relevant documentation, commit, push, and synchronize the Google Drive workspace if documentation changes.",
+      "",
+    );
+
+    return lines.join("\n");
+  },
+
   buildMarkdownReport() {
     const stats = QAState.getStats();
     const bugs = QAState.getBugs();
@@ -911,6 +1180,16 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
     return `${state.session.projectName} / ${module.name} on ${state.session.testDate}`;
   },
 
+  buildLabel() {
+    const parts = [
+      state.session.versionName,
+      state.session.branchName ? `branch ${state.session.branchName}` : "",
+      state.session.buildDate,
+      state.session.buildTime,
+    ].filter(Boolean);
+    return parts.length ? parts.join(" / ") : "Not specified";
+  },
+
   sessionMetadata() {
     return [
       `- Project: ${state.session.projectName}`,
@@ -955,6 +1234,102 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
       lines.push(`- Screenshot ${index + 1}: ${screenshot.name}`);
     });
     lines.push("");
+  },
+
+  bugSummaryLine({ item, title, module, section }) {
+    return `- ${item.bugId}: ${title} | ${module.name} / ${section} | Severity: ${
+      item.severity || "Not selected"
+    } | Priority: ${item.priority || "Not selected"} | Status: ${item.workStatus || "Open"}`;
+  },
+
+  bugDetailBlock(bug) {
+    const { item, title, module, section } = bug;
+    const lines = [
+      `## ${item.bugId}: ${title}`,
+      "",
+      `- Module: ${module.name}`,
+      `- Section: ${section}`,
+      `- Severity: ${item.severity || "Not selected"}`,
+      `- Priority: ${item.priority || "Not selected"}`,
+      `- Status: ${item.workStatus || "Open"}`,
+      `- Reproducibility: ${item.reproducibility || "Not selected"}`,
+      "",
+    ];
+    this.addField(lines, "Expected Behaviour", item.expected);
+    this.addField(lines, "Actual Behaviour", item.actual);
+    this.addField(lines, "Steps To Reproduce", item.steps);
+    this.addField(lines, "Developer Console Output", item.developerConsole);
+    this.addArchitectNotes(lines, item);
+    this.addEvidenceReferences(lines, item);
+    return lines;
+  },
+
+  codexBugBlock(bug) {
+    const { item, title, module, section } = bug;
+    const lines = [
+      `## ${item.bugId}: ${title}`,
+      "",
+      `- Bug ID: ${item.bugId}`,
+      `- Module: ${module.name}`,
+      `- Section: ${section}`,
+      `- Severity: ${item.severity || "Not selected"}`,
+      `- Priority: ${item.priority || "Not selected"}`,
+      `- Status: ${item.workStatus || "Open"}`,
+      `- Reproducibility: ${item.reproducibility || "Not selected"}`,
+      "",
+    ];
+    this.addField(lines, "Expected Behaviour", item.expected);
+    this.addField(lines, "Actual Behaviour", item.actual);
+    this.addField(lines, "Steps To Reproduce", item.steps);
+    this.addField(lines, "Developer Console Output", item.developerConsole);
+    this.addField(lines, "Architect Recommendation", item.architectRecommendation);
+    this.addField(lines, "Possible Root Cause", item.possibleRootCause);
+    this.addField(lines, "Suggested Investigation", item.suggestedInvestigation);
+    this.addField(lines, "Suggested Files", item.suggestedFiles);
+    this.addEvidenceReferences(lines, item);
+    lines.push("### Acceptance Criteria", "");
+    lines.push(`- ${item.bugId} root cause is identified and documented.`);
+    lines.push("- The smallest safe fix is proposed before implementation.");
+    lines.push("- The fix preserves existing architecture and unrelated behavior.");
+    lines.push("- Relevant verification steps pass.");
+    lines.push("- Documentation is updated if engineering knowledge or project status changes.");
+    return lines;
+  },
+
+  completionStatus(stats) {
+    if (!stats.total) return "No checklist items available.";
+    if (stats.notTested === 0 && stats.openBugs === 0) return "Complete and no open bugs recorded.";
+    if (stats.notTested === 0) return "Testing complete with unresolved findings.";
+    return "Testing in progress.";
+  },
+
+  stabilitySummary(stats) {
+    if (stats.mvpBlockers || stats.critical) {
+      return "Current stability is not release-ready because MVP blockers or critical issues are recorded.";
+    }
+    if (stats.openBugs) {
+      return "Current stability is partially acceptable, but unresolved bugs remain.";
+    }
+    if (stats.notTested) {
+      return "Current stability is uncertain because some test coverage remains incomplete.";
+    }
+    return "Current stability appears acceptable based on the recorded QA results.";
+  },
+
+  majorRisks(stats) {
+    const risks = [];
+    if (stats.mvpBlockers) risks.push(`${stats.mvpBlockers} MVP blocker(s) remain open or recorded.`);
+    if (stats.critical) risks.push(`${stats.critical} critical priority issue(s) are recorded.`);
+    if (stats.high) risks.push(`${stats.high} high priority issue(s) are recorded.`);
+    if (stats.notTested) risks.push(`${stats.notTested} test(s) have not yet been executed.`);
+    if (!risks.length) return "No major risks are recorded in the current QA session.";
+    return risks.map((risk) => `- ${risk}`).join("\n");
+  },
+
+  releaseReadiness(stats) {
+    if (stats.mvpBlockers || stats.critical) return "Not ready for release.";
+    if (stats.openBugs || stats.notTested) return "Conditionally not ready; complete triage and remaining testing first.";
+    return "Ready for release review based on the current QA record.";
   },
 
   overallRecommendation(stats) {
@@ -1002,6 +1377,15 @@ function hasArchitectNotes(item) {
       item.suggestedInvestigation ||
       item.suggestedFiles,
   );
+}
+
+function uniqueBugs(bugs) {
+  const seen = new Set();
+  return bugs.filter(({ item }) => {
+    if (seen.has(item.bugId)) return false;
+    seen.add(item.bugId);
+    return true;
+  });
 }
 
 function applyBugFilters(bugs) {

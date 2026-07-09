@@ -190,6 +190,57 @@
         <div id="sectionProgress" class="section-progress"></div>
       </section>
 
+      <section class="panel export-centre" aria-labelledby="export-centre-title">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Engineering Handover</p>
+            <h2 id="export-centre-title">Export Centre</h2>
+          </div>
+        </div>
+
+        <div class="export-grid">
+          <article class="export-card">
+            <p class="eyebrow">QA Report</p>
+            <h3>Session Reports</h3>
+            <p>Export complete QA results for review, printing, or PDF handoff.</p>
+            <div class="export-actions">
+              <button id="exportFullQaReport" type="button">Export Full QA Report</button>
+              <button id="exportPrintableHtml" type="button">Export Printable HTML</button>
+              <button id="printFromExportCentre" type="button">Print / Save PDF</button>
+            </div>
+          </article>
+
+          <article class="export-card">
+            <p class="eyebrow">Engineering Documentation</p>
+            <h3>Generated Updates</h3>
+            <p>Generate proposed Markdown updates. The QA Manager never overwrites project docs.</p>
+            <div class="export-actions">
+              <button id="exportProjectStatusUpdate" type="button">Generate PROJECT_STATUS Update</button>
+              <button id="exportSprintUpdate" type="button">Generate NEXT_DEVELOPMENT_SPRINT Update</button>
+              <button id="exportQaSummary" type="button">Generate QA Summary</button>
+              <button id="exportBugsReport" type="button">Generate Bugs Report</button>
+              <button id="prepareCodexTask" type="button">Prepare Codex Task</button>
+            </div>
+          </article>
+        </div>
+
+        <div class="generated-output">
+          <label>
+            Generated Markdown
+            <textarea
+              id="generatedExport"
+              rows="12"
+              readonly
+              placeholder="Generated engineering documentation will appear here."
+            ></textarea>
+          </label>
+          <div class="generated-actions">
+            <button id="copyGeneratedExport" class="secondary" type="button">Copy Generated Markdown</button>
+            <button id="downloadGeneratedExport" class="secondary" type="button">Download Generated Markdown</button>
+          </div>
+        </div>
+      </section>
+
       <section class="panel" aria-labelledby="bug-search-title">
         <div class="section-title">
           <div>

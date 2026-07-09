@@ -28,7 +28,7 @@ Version 2 evolves it into a small QA management application that supports:
 - evidence collection
 - developer console output capture
 - architect guidance notes
-- report export
+- engineering documentation and developer handover exports
 - local browser persistence
 - future module expansion
 - future Supabase synchronization without redesigning the UI
@@ -176,13 +176,14 @@ Bug filtering supports:
 - closed bugs
 - bug ID search
 
-### Reporting
+### Export Centre
 
-The app exports:
+The Export Centre turns QA sessions into engineering artifacts without modifying project files.
+
+Session report exports:
 
 - full Markdown QA report
 - printable HTML QA report
-- single-bug Markdown reports
 - browser print / save as PDF
 
 Full reports include:
@@ -195,7 +196,83 @@ Full reports include:
 - architect notes
 - overall recommendation
 
+Engineering documentation exports:
+
+- generated `PROJECT_STATUS.md` update section
+- generated `NEXT_DEVELOPMENT_SPRINT.md` update section
+- QA executive summary for the Founder and Principal Software Architect
+- unresolved bugs-only report
+- Codex task handoff document
+
+The QA Manager never overwrites engineering documentation. It generates proposed Markdown that Codex can review before updating the BandUp repository.
+
+### Single Bug Export
+
 Single bug exports are designed to be pasted directly into ChatGPT or Codex.
+
+Each single bug export includes:
+
+- bug ID
+- title
+- module
+- severity
+- priority
+- reproducibility
+- status
+- expected behaviour
+- actual behaviour
+- steps to reproduce
+- developer console output
+- architect notes
+- evidence references
+- timestamp
+
+### Codex Task Export
+
+Prepare Codex Task generates a Markdown task document for unresolved issues.
+
+The generated task includes:
+
+- bug ID
+- module
+- severity
+- priority
+- expected behaviour
+- actual behaviour
+- steps to reproduce
+- developer console output
+- architect recommendation
+- possible root cause
+- suggested investigation
+- suggested files
+- screenshot references
+- acceptance criteria
+
+It ends with the required BandUp engineering instruction:
+
+```text
+Please investigate the root cause, propose the smallest safe implementation, verify the fix, update all relevant documentation, commit, push, and synchronize the Google Drive workspace if documentation changes.
+```
+
+### Export Governance
+
+The QA Manager is the primary browser-side source of truth for manual QA sessions, but it does not replace the BandUp engineering authority hierarchy.
+
+Generated documentation must still be reviewed by:
+
+1. Founder
+2. Principal Software Architect
+3. Lead Software Engineer / Codex
+
+Codex remains responsible for:
+
+- reviewing generated documentation
+- updating `PROJECT_STATUS.md`
+- updating `NEXT_DEVELOPMENT_SPRINT.md`
+- updating the EKB where appropriate
+- committing changes
+- pushing to GitHub
+- synchronizing the Google Drive workspace when documentation changes
 
 ## Screenshot Support
 
@@ -224,6 +301,38 @@ This means:
 - no QA data is sent to a server
 
 The storage logic is separated in `script.js` so a future Supabase adapter can be added without redesigning the UI.
+
+## Architecture Notes
+
+The app remains intentionally small:
+
+- static HTML
+- CSS
+- vanilla JavaScript
+- no framework
+- no backend
+- no build step
+- GitHub Pages compatible
+
+`script.js` keeps the main responsibilities separated:
+
+- data definitions
+- storage adapter
+- QA state helpers
+- rendering
+- export generation
+- environment detection
+- utilities
+
+The export layer is designed so future AI-assisted actions can be added without redesigning the app.
+
+Possible future generated actions:
+
+- Generate Architect Review
+- Generate Release Notes
+- Generate GitHub Issue
+- Generate Pull Request Summary
+- Generate Test Completion Report
 
 ## Files
 
@@ -267,3 +376,5 @@ Recommended next improvements:
 - add shared bug status workflows
 - add lightweight release/version metadata import
 - add keyboard shortcuts for testers
+- add optional AI-generated architect review exports
+- add GitHub issue export templates
