@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BandUp QA Checklist</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Manual QA</p>
+        <h1>BandUp QA Checklist</h1>
+        <p class="header-copy">
+          Browser-based checklist for validating BandUp modules during MVP QA.
+        </p>
+      </div>
+      <div class="header-actions">
+        <button id="exportMarkdown" type="button">Export Markdown</button>
+        <button id="exportHtml" type="button">Export HTML</button>
+        <button id="printReport" type="button">Print / Save PDF</button>
+        <button id="resetAll" class="danger" type="button">Reset</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel session-panel" aria-labelledby="session-title">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Test Session</p>
+            <h2 id="session-title">Project Details</h2>
+          </div>
+          <span id="saveState" class="save-state">Saved locally</span>
+        </div>
+
+        <div class="session-grid">
+          <label>
+            Project name
+            <input id="projectName" type="text" value="BandUp" />
+          </label>
+          <label>
+            Module
+            <input id="moduleName" type="text" value="Reading" />
+          </label>
+          <label>
+            Tester
+            <input id="testerName" type="text" placeholder="Tester name" />
+          </label>
+          <label>
+            Date
+            <input id="testDate" type="date" />
+          </label>
+          <label>
+            Commit / build
+            <input id="commitBuild" type="text" placeholder="Commit hash or build label" />
+          </label>
+          <label>
+            Device
+            <input id="deviceName" type="text" placeholder="Desktop, iPhone, Android..." />
+          </label>
+          <label>
+            Browser
+            <input id="browserName" type="text" placeholder="Chrome, Safari, Firefox..." />
+          </label>
+          <label>
+            Environment
+            <select id="environmentName">
+              <option value="Local">Local</option>
+              <option value="Staging">Staging</option>
+              <option value="Production">Production</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="QA summary">
+        <article class="summary-card wide">
+          <span>Progress</span>
+          <strong id="progressPercent">0%</strong>
+          <div class="progress-track">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+        </article>
+        <article class="summary-card">
+          <span>Total</span>
+          <strong id="totalTests">0</strong>
+        </article>
+        <article class="summary-card pass">
+          <span>Passed</span>
+          <strong id="passedTests">0</strong>
+        </article>
+        <article class="summary-card fail">
+          <span>Failed</span>
+          <strong id="failedTests">0</strong>
+        </article>
+        <article class="summary-card">
+          <span>Not tested</span>
+          <strong id="notTestedTests">0</strong>
+        </article>
+        <article class="summary-card blocker">
+          <span>MVP blockers</span>
+          <strong id="blockerCount">0</strong>
+        </article>
+        <article class="summary-card bug">
+          <span>Bugs</span>
+          <strong id="bugCount">0</strong>
+        </article>
+        <article class="summary-card ux">
+          <span>UX improvements</span>
+          <strong id="uxCount">0</strong>
+        </article>
+        <article class="summary-card post">
+          <span>Post-MVP</span>
+          <strong id="postMvpCount">0</strong>
+        </article>
+      </section>
+
+      <section id="checklist" class="checklist" aria-label="Reading QA checklist"></section>
+    </main>
+
+    <template id="cardTemplate">
+      <article class="qa-card">
+        <div class="card-top">
+          <h3></h3>
+          <div class="status-toggle" role="group" aria-label="Test result">
+            <button type="button" data-status-button="Pass">Pass</button>
+            <button type="button" data-status-button="Fail">Fail</button>
+            <button type="button" data-status-button="Not Tested">Not Tested</button>
+          </div>
+        </div>
+
+        <div class="card-grid">
+          <label>
+            Severity
+            <select data-field="severity">
+              <option value="">Select severity</option>
+              <option value="MVP Blocker">MVP Blocker</option>
+              <option value="Bug">Bug</option>
+              <option value="UX Improvement">UX Improvement</option>
+              <option value="Post-MVP Enhancement">Post-MVP Enhancement</option>
+            </select>
+          </label>
+          <label>
+            Category
+            <select data-field="category"></select>
+          </label>
+          <label>
+            Status
+            <select data-field="workStatus">
+              <option value="Open">Open</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Fixed">Fixed</option>
+              <option value="Retest Required">Retest Required</option>
+              <option value="Closed">Closed</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="text-grid">
+          <label>
+            Notes
+            <textarea data-field="notes" rows="3"></textarea>
+          </label>
+          <label>
+            Expected behaviour
+            <textarea data-field="expected" rows="3"></textarea>
+          </label>
+          <label>
+            Actual behaviour
+            <textarea data-field="actual" rows="3"></textarea>
+          </label>
+          <label>
+            Steps to reproduce
+            <textarea data-field="steps" rows="3"></textarea>
+          </label>
+          <label>
+            Recommendation
+            <textarea data-field="recommendation" rows="3"></textarea>
+          </label>
+        </div>
+
+        <div class="screenshot-area" tabindex="0">
+          <div>
+            <strong>Screenshots</strong>
+            <p>Paste screenshots while this card is focused, or upload up to 3 images.</p>
+          </div>
+          <label class="upload-button">
+            Upload images
+            <input data-field="screenshots" type="file" accept="image/*" multiple />
+          </label>
+          <div class="screenshot-preview"></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
