@@ -61,6 +61,34 @@
         </section>
 
         <section id="checklist" class="checklist" aria-label="QA checklist"></section>
+        <section id="completionSummary" class="completion-summary hidden" aria-live="polite">
+          <p class="eyebrow">Complete</p>
+          <h2 id="completionTitle">Reading Module Complete</h2>
+          <p id="completionCount">0 of 0 tests completed</p>
+          <div class="completion-grid">
+            <article>
+              <span>Passed</span>
+              <strong id="completionPassed">0</strong>
+            </article>
+            <article>
+              <span>Failed</span>
+              <strong id="completionFailed">0</strong>
+            </article>
+            <article>
+              <span>Skipped</span>
+              <strong id="completionSkipped">0</strong>
+            </article>
+            <article>
+              <span>Time Spent</span>
+              <strong id="completionTime">0 min</strong>
+            </article>
+          </div>
+          <div class="completion-actions">
+            <button id="completionCodexTask" type="button">Prepare Codex Task</button>
+            <button id="completionQaReport" type="button">Generate QA Report</button>
+            <button id="completionNextModule" class="secondary" type="button">Continue to Listening</button>
+          </div>
+        </section>
       </section>
 
       <section id="engineeringMode" class="mode-panel hidden">
@@ -355,11 +383,24 @@
             <input type="checkbox" data-action="toggle-pass" />
             <span></span>
           </label>
-          <button class="report-button" type="button" data-action="report-problem">Report Problem</button>
+          <div class="simple-actions">
+            <button class="secondary" type="button" data-action="add-note">Add Note</button>
+            <button class="report-button" type="button" data-action="report-problem">Report Problem</button>
+          </div>
+        </div>
+        <div class="guidance-grid">
+          <div>
+            <strong>What to do</strong>
+            <p data-what-to-do></p>
+          </div>
+          <div>
+            <strong>Expected Result</strong>
+            <p data-expected-result></p>
+          </div>
         </div>
         <p class="bug-id" data-bug-id></p>
 
-        <div class="quick-notes">
+        <div class="quick-notes hidden" data-note-panel>
           <label>
             Notes
             <textarea data-field="notes" rows="2" placeholder="Optional note for yourself"></textarea>

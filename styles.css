@@ -900,6 +900,13 @@ h3 {
   grid-template-columns: 1fr auto;
 }
 
+.simple-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 .checkline {
   align-items: center;
   color: var(--text);
@@ -913,6 +920,31 @@ h3 {
   accent-color: var(--pass);
   height: 28px;
   width: 28px;
+}
+
+.guidance-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.9rem;
+}
+
+.guidance-grid div {
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.85rem;
+}
+
+.guidance-grid strong {
+  display: block;
+  font-size: 0.82rem;
+  margin-bottom: 0.3rem;
+  text-transform: uppercase;
+}
+
+.guidance-grid p {
+  color: #3c485e;
 }
 
 .report-button {
@@ -960,15 +992,71 @@ h3 {
   margin-top: 0.8rem;
 }
 
+.completion-summary {
+  background: #f6fbf8;
+  border: 1px solid #bcebd3;
+  border-radius: 18px;
+  box-shadow: 0 10px 24px rgba(23, 32, 51, 0.06);
+  margin: 1rem 0 3rem;
+  padding: 1.4rem;
+}
+
+.completion-summary h2 {
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.completion-summary > p:not(.eyebrow) {
+  color: var(--muted);
+  font-weight: 800;
+  margin-top: 0.35rem;
+}
+
+.completion-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.completion-grid article {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.completion-grid span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.completion-grid strong {
+  display: block;
+  font-size: 1.55rem;
+  margin-top: 0.25rem;
+}
+
+.completion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
 @media (max-width: 760px) {
   .mode-switch,
   .session-strip,
   .simple-card-row,
-  .problem-header {
+  .problem-header,
+  .guidance-grid,
+  .completion-grid {
     grid-template-columns: 1fr;
   }
 
   .mode-switch,
+  .simple-actions,
   .problem-header .card-actions {
     display: grid;
   }

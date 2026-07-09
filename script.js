@@ -1,4 +1,4 @@
-const APP_VERSION = "3.0.0";
+const APP_VERSION = "4.0.0";
 const STORAGE_KEY = "bandup-qa-manager-v2";
 
 const MODULES = [
@@ -80,107 +80,331 @@ const QA_DATA = {
     {
       section: "Navigation",
       items: [
-        "Open the Reading module from Dashboard",
-        "Open Reading from primary navigation",
-        "Return to Dashboard without losing current Reading state",
-        "Verify protected route behavior when logged out",
+        {
+          title: "Reading opens from the Dashboard",
+          whatToDo: "Go to the Dashboard and open the Reading module.",
+          expected: "The Reading screen opens without any error messages.",
+        },
+        {
+          title: "Reading opens from the main menu",
+          whatToDo: "Use the app menu to open Reading.",
+          expected: "You arrive on the same Reading screen and can start testing.",
+        },
+        {
+          title: "Back button returns to the previous screen",
+          whatToDo: "Open a Reading passage, then use the browser or app Back button.",
+          expected: "You return to the previous screen without the app freezing or showing an error.",
+        },
+        {
+          title: "Logged-out users are protected",
+          whatToDo: "Sign out, then try to open the Reading page directly.",
+          expected: "The app sends you to the sign-in screen instead of showing private Reading content.",
+        },
       ],
     },
     {
-      section: "Reading Passage",
+      section: "Reading Passages",
       items: [
-        "Reading passage loads without layout shift",
-        "Passage text is readable on desktop",
-        "Passage text is readable on mobile",
-        "Instructions are clear before answering",
+        {
+          title: "Reading passage appears clearly",
+          whatToDo: "Open Reading and look at the passage area.",
+          expected: "The passage appears clearly and there are no blank or broken sections.",
+        },
+        {
+          title: "Passage is easy to read on desktop",
+          whatToDo: "View the Reading passage on a laptop or desktop screen.",
+          expected: "The text is comfortable to read and does not feel cramped.",
+        },
+        {
+          title: "Passage is easy to read on mobile",
+          whatToDo: "Resize the browser to a phone width or test on a phone.",
+          expected: "The passage still fits the screen and the text does not overlap other controls.",
+        },
+        {
+          title: "Instructions are clear before answering",
+          whatToDo: "Read the instructions above or near the Reading questions.",
+          expected: "You understand what to do before choosing an answer.",
+        },
       ],
     },
     {
       section: "Questions",
       items: [
-        "Multiple-choice question displays all options",
-        "True / False / Not Given question displays valid choices",
-        "Selecting an answer visually updates the card",
-        "Changing an answer before submit works correctly",
-        "Unanswered questions are clearly identifiable",
+        {
+          title: "Multiple-choice answers are visible",
+          whatToDo: "Open a multiple-choice Reading question.",
+          expected: "All answer choices are visible and easy to select.",
+        },
+        {
+          title: "True / False / Not Given answers are visible",
+          whatToDo: "Open a True / False / Not Given question.",
+          expected: "The choices True, False, and Not Given are visible and easy to select.",
+        },
+        {
+          title: "Selected answer is obvious",
+          whatToDo: "Choose an answer for any Reading question.",
+          expected: "The selected answer is clearly highlighted so you know what you chose.",
+        },
+        {
+          title: "Changing an answer works",
+          whatToDo: "Choose one answer, then choose a different answer before submitting.",
+          expected: "The new answer becomes selected and the old answer is no longer selected.",
+        },
+        {
+          title: "Unanswered questions are easy to notice",
+          whatToDo: "Look at a question before choosing an answer.",
+          expected: "It is clear that no answer has been selected yet.",
+        },
       ],
     },
     {
       section: "Submit Answers",
       items: [
-        "Submit button is available when an answer is selected",
-        "Submitting an answer locks the result state",
-        "Static explanation appears after submit",
-        "Correct and incorrect answers are clearly distinguished",
-        "Final submission shows completion feedback",
+        {
+          title: "Submit button is easy to find",
+          whatToDo: "Choose an answer for a Reading question and look for the submit button.",
+          expected: "The submit button is visible and easy to understand.",
+        },
+        {
+          title: "Submitting records the answer",
+          whatToDo: "Choose an answer and press Submit.",
+          expected: "The app accepts the answer and shows whether it was correct or incorrect.",
+        },
+        {
+          title: "Explanation appears after submitting",
+          whatToDo: "Submit any Reading answer.",
+          expected: "An explanation appears so you can understand the answer.",
+        },
+        {
+          title: "Correct and incorrect answers are clear",
+          whatToDo: "Submit both a correct and an incorrect answer if possible.",
+          expected: "The app clearly shows which answer was correct and whether your answer was right or wrong.",
+        },
+        {
+          title: "Final question shows completion feedback",
+          whatToDo: "Answer and submit the final Reading question.",
+          expected: "The app clearly shows that the Reading activity is complete.",
+        },
       ],
     },
     {
       section: "Results Screen",
       items: [
-        "Completion summary is visible after the final Reading question",
-        "Questions correct count is accurate",
-        "Questions incorrect count is accurate",
-        "Percentage score is accurate",
-        "Estimated band displays where available",
-        "Progress saved confirmation appears",
+        {
+          title: "Results appear after the final question",
+          whatToDo: "Complete all Reading questions in the activity.",
+          expected: "A results summary appears where you can easily see it.",
+        },
+        {
+          title: "Correct answer count is right",
+          whatToDo: "Compare the results summary with the answers you submitted.",
+          expected: "The number of correct answers matches your test run.",
+        },
+        {
+          title: "Incorrect answer count is right",
+          whatToDo: "Compare the results summary with the answers you submitted.",
+          expected: "The number of incorrect answers matches your test run.",
+        },
+        {
+          title: "Percentage score is shown correctly",
+          whatToDo: "Check the percentage shown in the results summary.",
+          expected: "The percentage matches the number of correct answers out of the total questions.",
+        },
+        {
+          title: "Estimated band is shown when available",
+          whatToDo: "Look at the completed Reading results.",
+          expected: "If the app has enough information, it shows an estimated IELTS band clearly.",
+        },
+        {
+          title: "Progress saved message is clear",
+          whatToDo: "Complete the Reading activity and check the results area.",
+          expected: "The app clearly tells you that progress has been saved or recorded.",
+        },
       ],
     },
     {
-      section: "AI Reading Explanation Engine",
+      section: "AI Explanations",
       items: [
-        "Authenticated user can request AI explanation",
-        "Guest user sees clear sign-in message for AI Tutor",
-        "Explain more simply returns learner-friendly text",
-        "Show another example returns a distinct example",
-        "Why isn't my answer correct references the learner answer",
-        "Show me where the answer is references passage evidence",
-        "Quiz me again returns a usable follow-up question",
-        "AI response displays without raw Markdown artifacts",
-        "AI fallback does not interrupt static explanation",
+        {
+          title: "Signed-in user can ask the AI Tutor",
+          whatToDo: "Sign in, submit a Reading answer, then click an AI Tutor button.",
+          expected: "The AI Tutor gives a helpful explanation.",
+        },
+        {
+          title: "Guest user sees a clear sign-in message",
+          whatToDo: "Use Guest Mode, submit a Reading answer, then try to use the AI Tutor.",
+          expected: "The app explains that AI Tutor is available after signing in or creating an account.",
+        },
+        {
+          title: "Simple explanation is easy to understand",
+          whatToDo: "Click the option that asks the AI to explain more simply.",
+          expected: "The explanation uses simple language and is easier to understand than the original explanation.",
+        },
+        {
+          title: "Another example is different",
+          whatToDo: "Click the option that asks for another example.",
+          expected: "The AI gives a new example instead of repeating the same explanation.",
+        },
+        {
+          title: "Wrong answer explanation refers to your answer",
+          whatToDo: "Choose an incorrect answer, submit it, then ask why your answer was not correct.",
+          expected: "The AI talks about the answer you chose and explains why it does not work.",
+        },
+        {
+          title: "Passage evidence is explained",
+          whatToDo: "Click the option that asks where the answer is in the passage.",
+          expected: "The AI points to the relevant part of the passage and explains why it supports the answer.",
+        },
+        {
+          title: "Quiz me again gives a usable question",
+          whatToDo: "Click the option that asks the AI to quiz you again.",
+          expected: "The AI gives a new practice question that makes sense for Reading practice.",
+        },
+        {
+          title: "AI text looks clean",
+          whatToDo: "Read the AI Tutor response carefully.",
+          expected: "The response does not show raw symbols like double asterisks or broken formatting.",
+        },
+        {
+          title: "Static explanation remains available",
+          whatToDo: "Submit a Reading answer and use the AI Tutor.",
+          expected: "The normal explanation stays visible even if the AI is slow or unavailable.",
+        },
       ],
     },
     {
-      section: "Progress Tracking",
+      section: "Progress",
       items: [
-        "Reading answer updates questions answered",
-        "Correct answer updates correct count",
-        "Incorrect answer updates incorrect count",
-        "Reading activity appears in recent activity",
-        "Dashboard reflects Reading progress after completion",
-        "Progress page reflects Reading progress after completion",
-        "Guest progress remains local-only",
-        "Authenticated progress persists after refresh",
+        {
+          title: "Answered question count increases",
+          whatToDo: "Submit a Reading answer, then check the Dashboard or Progress page.",
+          expected: "The number of answered questions increases.",
+        },
+        {
+          title: "Correct answer count increases",
+          whatToDo: "Submit a correct Reading answer, then check progress.",
+          expected: "The correct answer count increases.",
+        },
+        {
+          title: "Incorrect answer count increases",
+          whatToDo: "Submit an incorrect Reading answer, then check progress.",
+          expected: "The incorrect answer count increases.",
+        },
+        {
+          title: "Recent activity shows Reading practice",
+          whatToDo: "Submit a Reading answer and return to the Dashboard.",
+          expected: "Recent activity shows that Reading practice happened.",
+        },
+        {
+          title: "Dashboard updates after Reading",
+          whatToDo: "Complete Reading practice and return to the Dashboard.",
+          expected: "The Dashboard shows updated Reading progress.",
+        },
+        {
+          title: "Progress page updates after Reading",
+          whatToDo: "Complete Reading practice and open the Progress page.",
+          expected: "The Progress page shows the new Reading activity.",
+        },
+        {
+          title: "Guest progress stays on this browser only",
+          whatToDo: "Use Guest Mode, complete a Reading item, then refresh the browser.",
+          expected: "Guest progress remains on this browser but is not treated as account progress.",
+        },
+        {
+          title: "Signed-in progress remains after refresh",
+          whatToDo: "Sign in, complete a Reading item, refresh the browser, and check progress again.",
+          expected: "Your account progress is still there after the refresh.",
+        },
       ],
     },
     {
       section: "Error Handling",
       items: [
-        "Submitting without a selected answer is prevented",
-        "AI unavailable state shows friendly message",
-        "Network/provider failure keeps static explanation visible",
-        "Refresh during Reading does not crash the app",
-        "Invalid auth state redirects safely",
+        {
+          title: "Cannot submit without choosing an answer",
+          whatToDo: "Open a Reading question and try to submit without selecting an answer.",
+          expected: "The app prevents the empty submission or clearly tells you to choose an answer first.",
+        },
+        {
+          title: "AI unavailable message is friendly",
+          whatToDo: "If AI is unavailable, look at the message shown to the user.",
+          expected: "The message is clear, friendly, and does not look like a technical error.",
+        },
+        {
+          title: "AI failure does not block learning",
+          whatToDo: "Use Reading when the AI Tutor is unavailable or slow.",
+          expected: "The normal explanation still works and the learner can continue.",
+        },
+        {
+          title: "Refreshing Reading does not crash",
+          whatToDo: "Open Reading and refresh the browser page.",
+          expected: "The app reloads safely without a blank screen or crash.",
+        },
+        {
+          title: "Invalid session returns safely to sign in",
+          whatToDo: "If your session has expired, try opening Reading again.",
+          expected: "The app sends you to sign in instead of showing a broken page.",
+        },
       ],
     },
     {
-      section: "UI / UX",
+      section: "UI & Appearance",
       items: [
-        "Reading cards use consistent spacing",
-        "Buttons have clear active and disabled states",
-        "AI Tutor active action is visually clear",
-        "Text does not overlap on mobile",
-        "Keyboard focus states are visible",
-        "No confusing or stale copy appears",
+        {
+          title: "Reading screen feels clean",
+          whatToDo: "Look over the Reading screen before answering.",
+          expected: "The page feels organised, calm, and not overcrowded.",
+        },
+        {
+          title: "Buttons are easy to understand",
+          whatToDo: "Look at the buttons on the Reading screen.",
+          expected: "Each button label makes it clear what will happen when clicked.",
+        },
+        {
+          title: "AI Tutor selected action is clear",
+          whatToDo: "Click more than one AI Tutor option after submitting an answer.",
+          expected: "It is clear which AI explanation is currently being shown.",
+        },
+        {
+          title: "Mobile layout does not overlap",
+          whatToDo: "Test Reading at a phone-sized width.",
+          expected: "Text, buttons, and cards fit without overlapping.",
+        },
+        {
+          title: "Keyboard focus is visible",
+          whatToDo: "Use the Tab key to move through Reading controls.",
+          expected: "You can see which button or input is currently selected.",
+        },
+        {
+          title: "No confusing old messages appear",
+          whatToDo: "Read the visible messages on the Reading screen.",
+          expected: "The wording feels current, helpful, and not confusing.",
+        },
       ],
     },
     {
       section: "Performance",
       items: [
-        "Reading route loads quickly on local environment",
-        "Answer submission feels responsive",
-        "AI loading state is clear",
-        "Large pasted screenshots do not break the QA Manager",
+        {
+          title: "Reading opens quickly",
+          whatToDo: "Open the Reading module and notice how long it takes to appear.",
+          expected: "The Reading screen appears quickly enough that it does not feel stuck.",
+        },
+        {
+          title: "Submitting an answer feels responsive",
+          whatToDo: "Choose an answer and press Submit.",
+          expected: "The app responds quickly and does not feel frozen.",
+        },
+        {
+          title: "AI loading state is clear",
+          whatToDo: "Ask the AI Tutor for an explanation.",
+          expected: "While waiting, the app clearly shows that something is loading.",
+        },
+        {
+          title: "Screenshots do not break the QA Manager",
+          whatToDo: "Paste or upload a screenshot into a QA item.",
+          expected: "The screenshot appears in the QA Manager and the page still works normally.",
+        },
       ],
     },
   ],
@@ -283,6 +507,7 @@ const Storage = {
     return {
       schemaVersion: 2,
       appVersion: APP_VERSION,
+      sessionStartedAt: now.iso,
       session: {
         projectName: "BandUp",
         moduleName: "reading",
@@ -352,12 +577,14 @@ const QAState = {
 
   getAllChecklistEntries(moduleKey = state.session.moduleName) {
     return this.getSections(moduleKey).flatMap((section) =>
-      section.items.map((title, index) => ({
+      section.items.map((item, index) => ({
         id: this.createItemId(moduleKey, section.section, index),
         moduleKey,
         moduleName: MODULES.find((module) => module.key === moduleKey)?.name || moduleKey,
         section: section.section,
-        title,
+        title: getQaTitle(item),
+        whatToDo: item.whatToDo || "",
+        expectedResult: item.expected || "",
       })),
     );
   },
@@ -371,6 +598,7 @@ const QAState = {
       state.items[id] = {
         result: "Not Tested",
         bugId: "",
+        noteOpen: false,
         severity: "",
         priority: "",
         category: defaults.section || "",
@@ -568,6 +796,7 @@ const Renderer = {
     this.renderChecklist();
     this.renderDashboard();
     this.renderSectionProgress();
+    this.renderCompletionSummary();
     this.renderBugList();
     this.renderEvidenceGallery();
   },
@@ -774,6 +1003,19 @@ const Renderer = {
       Environment.refresh();
       Utils.toast("Environment detection refreshed.");
     });
+    document.getElementById("completionCodexTask").addEventListener("click", () => {
+      this.setGeneratedExport("codex", Exporter.buildCodexTask());
+    });
+    document.getElementById("completionQaReport").addEventListener("click", () => {
+      this.setGeneratedExport("summary", Exporter.buildQaSummary());
+    });
+    document.getElementById("completionNextModule").addEventListener("click", () => {
+      state.session.moduleName = "listening";
+      persist();
+      this.renderModuleOptions();
+      this.renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
 
     ["bugSearch", "filterModule", "filterSeverity", "filterPriority", "filterStatus", "filterBugState"]
       .forEach((id) => document.getElementById(id).addEventListener("input", () => {
@@ -818,8 +1060,8 @@ const Renderer = {
       const stats = QAState.sectionStats(section);
       summary.innerHTML = `
         <div>
-          <h2>${Utils.escapeHtml(section.section)}</h2>
-          <span>${stats.completed}/${stats.total} complete</span>
+          <h2>${stats.progress === 100 ? "✓ " : ""}${Utils.escapeHtml(section.section)} (${stats.completed}/${stats.total})</h2>
+          <span>${stats.progress === 100 ? "Complete" : "In progress"}</span>
         </div>
         <strong>${stats.progress}%</strong>
       `;
@@ -828,18 +1070,22 @@ const Renderer = {
       const cards = document.createElement("div");
       cards.className = "section-cards";
 
-      section.items.forEach((title, index) => {
+      section.items.forEach((qaItem, index) => {
         const entry = {
           id: QAState.createItemId(module.key, section.section, index),
           moduleKey: module.key,
           moduleName: module.name,
           section: section.section,
-          title,
+          title: getQaTitle(qaItem),
+          whatToDo: qaItem.whatToDo || "",
+          expectedResult: qaItem.expected || "",
         };
         const item = QAState.getItem(entry.id, entry);
         const card = template.content.firstElementChild.cloneNode(true);
         card.dataset.id = entry.id;
-        card.querySelector(".checkline span").textContent = title;
+        card.querySelector(".checkline span").textContent = entry.title;
+        card.querySelector("[data-what-to-do]").textContent = entry.whatToDo;
+        card.querySelector("[data-expected-result]").textContent = entry.expectedResult;
         this.renderBugId(card, item);
         card.classList.toggle("passed", item.result === "Pass");
         card.classList.toggle("failed", item.result === "Fail");
@@ -853,9 +1099,17 @@ const Renderer = {
 
         const problemPanel = card.querySelector("[data-problem-panel]");
         problemPanel.classList.toggle("hidden", item.result !== "Fail" && !item.bugId);
+        const notePanel = card.querySelector("[data-note-panel]");
+        notePanel.classList.toggle("hidden", !item.noteOpen && !item.notes);
+
+        card.querySelector('[data-action="add-note"]').addEventListener("click", () => {
+          item.noteOpen = true;
+          persistAndRender();
+        });
 
         card.querySelector('[data-action="report-problem"]').addEventListener("click", () => {
           QAState.setResult(item, module.key, "Fail");
+          item.noteOpen = true;
           persistAndRender();
         });
 
@@ -967,6 +1221,21 @@ const Renderer = {
     setText("passedTests", stats.passed);
     setText("failedTests", stats.failed);
     setText("notTestedTests", stats.notTested);
+  },
+
+  renderCompletionSummary() {
+    const stats = QAState.getStats();
+    const module = QAState.getCurrentModule();
+    const complete = stats.total > 0 && stats.notTested === 0;
+    const summary = document.getElementById("completionSummary");
+    summary.classList.toggle("hidden", !complete);
+    if (!complete) return;
+    setText("completionTitle", `${module.name} Module Complete`);
+    setText("completionCount", `${stats.total} of ${stats.total} tests completed`);
+    setText("completionPassed", stats.passed);
+    setText("completionFailed", stats.failed);
+    setText("completionSkipped", stats.notTested);
+    setText("completionTime", formatElapsedTime(state.sessionStartedAt));
   },
 
   renderSectionProgress() {
@@ -1474,7 +1743,7 @@ const Exporter = {
       lines.push(`- Reproducibility: ${item.reproducibility || "Not selected"}`);
       lines.push(`- Status: ${item.workStatus || "Open"}`);
       lines.push("");
-      this.addField(lines, "Expected Behaviour", item.expected);
+      this.addField(lines, "Expected Behaviour", item.expected || entry.expectedResult);
       this.addField(lines, "Actual Behaviour", item.actual);
       this.addField(lines, "Steps To Reproduce", item.steps);
       this.addField(lines, "Developer Console Output", item.developerConsole);
@@ -1511,7 +1780,7 @@ const Exporter = {
       `- Timestamp: ${new Date().toISOString()}`,
       "",
     ];
-    this.addField(lines, "Expected Behaviour", item.expected);
+    this.addField(lines, "Expected Behaviour", item.expected || entry.expectedResult);
     this.addField(lines, "Actual Behaviour", item.actual);
     this.addField(lines, "Steps To Reproduce", item.steps);
     this.addField(lines, "Developer Console Output", item.developerConsole);
@@ -1654,7 +1923,7 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
       `- Reproducibility: ${item.reproducibility || "Not selected"}`,
       "",
     ];
-    this.addField(lines, "Expected Behaviour", item.expected);
+    this.addField(lines, "Expected Behaviour", item.expected || bug.expectedResult);
     this.addField(lines, "Actual Behaviour", item.actual);
     this.addField(lines, "Steps To Reproduce", item.steps);
     this.addField(lines, "Developer Console Output", item.developerConsole);
@@ -1677,7 +1946,7 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
       `- Reproducibility: ${item.reproducibility || "Not selected"}`,
       "",
     ];
-    this.addField(lines, "Expected Behaviour", item.expected);
+    this.addField(lines, "Expected Behaviour", item.expected || bug.expectedResult);
     this.addField(lines, "Actual Behaviour", item.actual);
     this.addField(lines, "Steps To Reproduce", item.steps);
     this.addField(lines, "Developer Console Output", item.developerConsole);
@@ -1809,12 +2078,28 @@ function persistAndRender(options = {}) {
   if (!options.skipChecklist) Renderer.renderChecklist();
   Renderer.renderDashboard();
   Renderer.renderSectionProgress();
+  Renderer.renderCompletionSummary();
   Renderer.renderBugList();
   Renderer.renderEvidenceGallery();
 }
 
 function categoriesForCurrentModule() {
   return QAState.getSections().map((section) => section.section);
+}
+
+function getQaTitle(item) {
+  return typeof item === "string" ? item : item.title;
+}
+
+function formatElapsedTime(startedAt) {
+  if (!startedAt) return "Not tracked";
+  const started = new Date(startedAt).getTime();
+  if (Number.isNaN(started)) return "Not tracked";
+  const minutes = Math.max(1, Math.round((Date.now() - started) / 60000));
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours} hr ${remainder} min` : `${hours} hr`;
 }
 
 function fillSelect(id, labels, values) {
