@@ -216,6 +216,8 @@ Each QA card includes:
 - screenshot area
 - Export Bug action
 
+Checklist sections remember their expanded or collapsed state while testing. Normal actions such as ticking a checkbox, adding notes, reporting a problem, editing fields, or attaching screenshots should not collapse the active section.
+
 ### Search And Filtering
 
 Bug filtering supports:
@@ -302,14 +304,23 @@ Each single bug export includes:
 - bug ID
 - title
 - module
+- section
 - severity
 - priority
 - reproducibility
 - status
+- founder notes
 - expected behaviour
 - actual behaviour
 - steps to reproduce
+- recommendation
 - developer console output
+- architect recommendation
+- possible root cause
+- suggested investigation
+- suggested files
+- screenshot references
+- timestamp
 - architect notes
 - evidence references
 - timestamp

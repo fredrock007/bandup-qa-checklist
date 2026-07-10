@@ -530,6 +530,9 @@ const Storage = {
       },
       counters: {},
       selectedBugIds: [],
+      ui: {
+        openSections: {},
+      },
       items: {},
     };
   },
@@ -558,6 +561,12 @@ const Storage = {
       session: { ...base.session, ...(saved.session || {}) },
       counters: { ...base.counters, ...(saved.counters || {}) },
       selectedBugIds: Array.isArray(saved.selectedBugIds) ? saved.selectedBugIds : [],
+      ui: {
+        openSections: {
+          ...base.ui.openSections,
+          ...((saved.ui && saved.ui.openSections) || {}),
+        },
+      },
       items: { ...(saved.items || {}) },
     };
   },
@@ -573,6 +582,10 @@ const QAState = {
 
   getSections(moduleKey = state.session.moduleName) {
     return QA_DATA[moduleKey] || [];
+  },
+
+  sectionStateKey(moduleKey, sectionName) {
+    return `${moduleKey}:${Utils.slug(sectionName)}`;
   },
 
   getAllChecklistEntries(moduleKey = state.session.moduleName) {
@@ -1051,10 +1064,24 @@ const Renderer = {
       return;
     }
 
+    state.ui = state.ui || { openSections: {} };
+    state.ui.openSections = state.ui.openSections || {};
+
     sections.forEach((section, sectionIndex) => {
       const details = document.createElement("details");
       details.className = "module-section";
-      details.open = sectionIndex === 0;
+      const sectionKey = QAState.sectionStateKey(module.key, section.section);
+      const hasStoredOpenState = Object.prototype.hasOwnProperty.call(
+        state.ui.openSections,
+        sectionKey,
+      );
+      details.open = hasStoredOpenState
+        ? Boolean(state.ui.openSections[sectionKey])
+        : sectionIndex === 0;
+      details.addEventListener("toggle", () => {
+        state.ui.openSections[sectionKey] = details.open;
+        persist();
+      });
 
       const summary = document.createElement("summary");
       const stats = QAState.sectionStats(section);
@@ -1147,20 +1174,27 @@ const Renderer = {
         card.querySelectorAll("[data-field]").forEach((field) => {
           const name = field.dataset.field;
           if (name === "screenshots") {
-            field.addEventListener("change", () => addScreenshots(entry.id, Array.from(field.files || [])));
+            field.addEventListener("change", () =>
+              addScreenshots(entry.id, Array.from(field.files || [])),
+            );
             return;
           }
           if (name === "category") {
             field.innerHTML = categoriesForCurrentModule()
-              .map((category) => `<option value="${Utils.escapeHtml(category)}">${Utils.escapeHtml(category)}</option>`)
+              .map(
+                (category) =>
+                  `<option value="${Utils.escapeHtml(category)}">${Utils.escapeHtml(category)}</option>`,
+              )
               .join("");
           }
           field.value = item[name] || "";
-          field.addEventListener("input", () => {
+          const updateField = () => {
             item[name] = field.value;
             item.updatedAt = new Date().toISOString();
             persistAndRender({ skipChecklist: true });
-          });
+          };
+          field.addEventListener("input", updateField);
+          field.addEventListener("change", updateField);
         });
 
         this.renderScreenshots(card, entry.id);
@@ -1783,6 +1817,8 @@ const Exporter = {
     this.addField(lines, "Expected Behaviour", item.expected || entry.expectedResult);
     this.addField(lines, "Actual Behaviour", item.actual);
     this.addField(lines, "Steps To Reproduce", item.steps);
+    this.addField(lines, "Founder Notes", item.notes);
+    this.addField(lines, "Recommendation", item.recommendation);
     this.addField(lines, "Developer Console Output", item.developerConsole);
     this.addArchitectNotes(lines, item);
     this.addEvidenceReferences(lines, item);
