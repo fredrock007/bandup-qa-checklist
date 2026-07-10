@@ -2199,7 +2199,9 @@ async function addScreenshots(itemId, files) {
   const images = await Promise.all(files.slice(0, availableSlots).map(fileToScreenshot));
   item.screenshots.push(...images);
   item.updatedAt = new Date().toISOString();
-  persistAndRender();
+  persistAndRender({ skipChecklist: true });
+  const card = document.querySelector(`.qa-card[data-id="${itemId}"]`);
+  if (card) Renderer.renderScreenshots(card, itemId);
   Utils.toast("Screenshot saved locally.");
 }
 
