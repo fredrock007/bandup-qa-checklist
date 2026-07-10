@@ -5,8 +5,8 @@ const MODULES = [
   { key: "authentication", name: "Authentication", prefix: "AUTH", populated: false },
   { key: "dashboard", name: "Dashboard", prefix: "DASH", populated: false },
   { key: "reading", name: "Reading", prefix: "READ", populated: true },
-  { key: "listening", name: "Listening", prefix: "LIST", populated: false },
-  { key: "writing", name: "Writing", prefix: "WRITE", populated: false },
+  { key: "listening", name: "Listening", prefix: "LIST", populated: true },
+  { key: "writing", name: "Writing", prefix: "WRITE", populated: true },
   { key: "speaking", name: "Speaking", prefix: "SPEAK", populated: false },
   { key: "mock-exams", name: "Mock Exams", prefix: "MOCK", populated: false },
   { key: "profile", name: "Profile", prefix: "PROFILE", populated: false },
@@ -404,6 +404,390 @@ const QA_DATA = {
           title: "Screenshots do not break the QA Manager",
           whatToDo: "Paste or upload a screenshot into a QA item.",
           expected: "The screenshot appears in the QA Manager and the page still works normally.",
+        },
+      ],
+    },
+  ],
+  listening: [
+    {
+      section: "Navigation",
+      items: [
+        {
+          title: "Listening opens from the Dashboard",
+          whatToDo: "Go to the Dashboard and open the Listening module.",
+          expected: "The Listening practice screen opens without a blank page or error message.",
+        },
+        {
+          title: "Listening opens from the main menu",
+          whatToDo: "Use the app menu to open Listening.",
+          expected: "You arrive on the Listening screen and can see the practice activity.",
+        },
+        {
+          title: "Question navigation buttons work",
+          whatToDo: "Use Previous and Next while viewing Listening questions.",
+          expected: "The app moves between questions without losing selected answers.",
+        },
+      ],
+    },
+    {
+      section: "Listening Home Screen",
+      items: [
+        {
+          title: "Listening activity is visible",
+          whatToDo: "Open Listening and look at the first screen.",
+          expected: "The title, audio controls, question area, transcript area, and vocabulary notes are visible.",
+        },
+        {
+          title: "Instructions are understandable",
+          whatToDo: "Read the text near the top of the Listening screen.",
+          expected: "It is clear that you should listen, answer questions, and then review explanations.",
+        },
+      ],
+    },
+    {
+      section: "Audio Playback",
+      items: [
+        {
+          title: "Audio is ready to play",
+          whatToDo: "Open Listening and look at the audio area before pressing Play.",
+          expected: "The audio area appears ready and does not show a loading error.",
+        },
+        {
+          title: "Play starts the audio",
+          whatToDo: "Press Play audio.",
+          expected: "The button changes to Pause and the progress bar begins moving.",
+        },
+        {
+          title: "Pause stops playback",
+          whatToDo: "Press Pause while the audio is playing.",
+          expected: "Playback pauses and the elapsed time stops increasing.",
+        },
+        {
+          title: "Resume continues playback",
+          whatToDo: "Press Resume after pausing.",
+          expected: "Playback continues from the paused position.",
+        },
+        {
+          title: "Restart begins again",
+          whatToDo: "Press Restart during or after playback.",
+          expected: "The audio timer returns to the beginning and starts again.",
+        },
+        {
+          title: "Audio progress is visible",
+          whatToDo: "Play the audio and watch the progress bar.",
+          expected: "The progress bar and timer move forward clearly.",
+        },
+        {
+          title: "No volume control is required in this MVP",
+          whatToDo: "Look for volume controls on the Listening screen.",
+          expected: "If no volume control appears, the screen still works because this MVP uses simulated playback.",
+        },
+      ],
+    },
+    {
+      section: "Questions",
+      items: [
+        {
+          title: "Question text is clear",
+          whatToDo: "Read the current Listening question.",
+          expected: "The question is easy to read and shows the question number.",
+        },
+        {
+          title: "Answer choices are easy to select",
+          whatToDo: "Choose an answer for a Listening question.",
+          expected: "The selected answer is visibly highlighted.",
+        },
+        {
+          title: "Changing an answer works before submission",
+          whatToDo: "Choose one answer, then choose a different answer before submitting.",
+          expected: "The new answer replaces the old answer.",
+        },
+        {
+          title: "Unanswered questions are easy to notice",
+          whatToDo: "Look at the question navigation card.",
+          expected: "Questions show whether they are not answered, answered, or submitted.",
+        },
+      ],
+    },
+    {
+      section: "Submission",
+      items: [
+        {
+          title: "Submit button appears after choosing an answer",
+          whatToDo: "Choose an answer and look for the Submit answer button.",
+          expected: "The submit button is available and clear.",
+        },
+        {
+          title: "Cannot submit an unanswered question",
+          whatToDo: "Open an unanswered question and look at the Submit answer button.",
+          expected: "The button is disabled until an answer is selected.",
+        },
+        {
+          title: "Submitted answer locks",
+          whatToDo: "Submit a Listening answer and then try to change it.",
+          expected: "The answer is locked after submission.",
+        },
+        {
+          title: "Explanation appears after submission",
+          whatToDo: "Submit a Listening answer.",
+          expected: "The explanation panel appears below the question.",
+        },
+      ],
+    },
+    {
+      section: "Results",
+      items: [
+        {
+          title: "Results appear after all questions",
+          whatToDo: "Submit every Listening question.",
+          expected: "A results summary appears with score, accuracy, and recorded progress.",
+        },
+        {
+          title: "Correct and incorrect answers are clear",
+          whatToDo: "Review submitted Listening explanations.",
+          expected: "The app shows whether each answer was correct or not quite right.",
+        },
+        {
+          title: "Transcript unlocks after playback",
+          whatToDo: "Let the simulated audio finish, then look at the transcript card.",
+          expected: "The transcript becomes visible after playback is complete.",
+        },
+      ],
+    },
+    {
+      section: "Progress",
+      items: [
+        {
+          title: "Dashboard updates after Listening",
+          whatToDo: "Submit a Listening answer and return to the Dashboard.",
+          expected: "Recent activity or question counts reflect Listening practice.",
+        },
+        {
+          title: "Progress page updates after Listening",
+          whatToDo: "Submit Listening answers and open the Progress page.",
+          expected: "Progress totals reflect the submitted Listening answers.",
+        },
+        {
+          title: "Saved vocabulary works",
+          whatToDo: "Click Save beside a vocabulary note.",
+          expected: "The word is saved for later review without breaking the Listening flow.",
+        },
+      ],
+    },
+    {
+      section: "Error Handling",
+      items: [
+        {
+          title: "Refresh does not crash Listening",
+          whatToDo: "Open Listening and refresh the browser.",
+          expected: "The Listening screen reloads safely without a blank page.",
+        },
+        {
+          title: "Mobile layout remains usable",
+          whatToDo: "Test Listening at a phone-sized width.",
+          expected: "Audio controls, questions, transcript, and buttons fit without overlapping.",
+        },
+        {
+          title: "Playback feels responsive",
+          whatToDo: "Press Play, Pause, Resume, and Restart.",
+          expected: "Each control responds quickly and does not freeze the page.",
+        },
+      ],
+    },
+  ],
+  writing: [
+    {
+      section: "Navigation",
+      items: [
+        {
+          title: "Writing opens from the Dashboard",
+          whatToDo: "Go to the Dashboard and open the Writing module.",
+          expected: "The Writing practice screen opens without any error messages.",
+        },
+        {
+          title: "Writing opens from the main menu",
+          whatToDo: "Use the app menu to open Writing.",
+          expected: "You arrive on the Writing screen and can see the available tasks.",
+        },
+      ],
+    },
+    {
+      section: "Writing Home Screen",
+      items: [
+        {
+          title: "Writing task buttons are visible",
+          whatToDo: "Open Writing and look at the task buttons near the top.",
+          expected: "The available Writing tasks are visible and easy to select.",
+        },
+        {
+          title: "Prompt is easy to read",
+          whatToDo: "Select a Writing task and read the prompt card.",
+          expected: "The prompt text is clear and not hidden or cut off.",
+        },
+        {
+          title: "Task type is shown",
+          whatToDo: "Look at the label beside the selected prompt.",
+          expected: "The app shows whether the task is Task 2, Academic Task 1, or General Task 1.",
+        },
+      ],
+    },
+    {
+      section: "Task Selection",
+      items: [
+        {
+          title: "Selecting another task works",
+          whatToDo: "Click a different Writing task button.",
+          expected: "The selected prompt changes to the new task.",
+        },
+        {
+          title: "Changing tasks clears the current draft",
+          whatToDo: "Type a few words, then select a different Writing task.",
+          expected: "The editor clears so the new task starts fresh.",
+        },
+      ],
+    },
+    {
+      section: "Writing Editor",
+      items: [
+        {
+          title: "Editor accepts typing",
+          whatToDo: "Click inside the response box and type a short paragraph.",
+          expected: "Your text appears in the editor as you type.",
+        },
+        {
+          title: "Editing text works",
+          whatToDo: "Delete, add, and change words in the editor.",
+          expected: "The editor updates normally without lag or lost text.",
+        },
+        {
+          title: "Word count updates",
+          whatToDo: "Type several words and watch the Current words value.",
+          expected: "The word count changes as you type.",
+        },
+        {
+          title: "Character count updates",
+          whatToDo: "Type and delete text while watching the Characters value.",
+          expected: "The character count changes as the draft changes.",
+        },
+        {
+          title: "Word progress bar updates",
+          whatToDo: "Continue typing toward the target word count.",
+          expected: "The progress bar moves as the word count increases.",
+        },
+        {
+          title: "Reset draft clears the editor",
+          whatToDo: "Type text, then click Reset draft.",
+          expected: "The editor clears and feedback disappears.",
+        },
+      ],
+    },
+    {
+      section: "Submission",
+      items: [
+        {
+          title: "Submit is disabled for very short drafts",
+          whatToDo: "Open Writing with an empty or very short draft.",
+          expected: "Get feedback is disabled until enough words are typed.",
+        },
+        {
+          title: "Short draft feedback becomes available",
+          whatToDo: "Type at least 30 words but less than the official target.",
+          expected: "The app allows feedback and warns that the estimate is limited.",
+        },
+        {
+          title: "Submitting shows feedback",
+          whatToDo: "Type enough words and click Get feedback.",
+          expected: "The feedback panel appears with an estimated band and criterion feedback.",
+        },
+        {
+          title: "Submitted draft is marked",
+          whatToDo: "Submit a draft and look near the response heading.",
+          expected: "The app shows that the current draft has been submitted.",
+        },
+        {
+          title: "Editing after submission resets feedback",
+          whatToDo: "Submit a draft, then change the text.",
+          expected: "The old feedback clears because the draft has changed.",
+        },
+      ],
+    },
+    {
+      section: "Feedback",
+      items: [
+        {
+          title: "Estimated band is visible",
+          whatToDo: "Submit a Writing response and look at the feedback panel.",
+          expected: "An estimated band is shown clearly.",
+        },
+        {
+          title: "Task achievement feedback appears",
+          whatToDo: "Submit a Writing response and review the feedback sections.",
+          expected: "Task achievement feedback is visible.",
+        },
+        {
+          title: "Coherence and cohesion feedback appears",
+          whatToDo: "Submit a Writing response and review the feedback sections.",
+          expected: "Coherence and cohesion feedback is visible.",
+        },
+        {
+          title: "Vocabulary feedback appears",
+          whatToDo: "Submit a Writing response and review the feedback sections.",
+          expected: "Lexical resource or vocabulary feedback is visible.",
+        },
+        {
+          title: "Grammar feedback appears",
+          whatToDo: "Submit a Writing response and review the feedback sections.",
+          expected: "Grammar feedback is visible.",
+        },
+        {
+          title: "Strengths and weaknesses are shown",
+          whatToDo: "Submit a Writing response and review the lists.",
+          expected: "The app shows strengths and weaknesses in clear language.",
+        },
+        {
+          title: "Next steps are practical",
+          whatToDo: "Read the next steps after submitting Writing.",
+          expected: "The next steps are understandable and useful for the learner.",
+        },
+      ],
+    },
+    {
+      section: "Progress",
+      items: [
+        {
+          title: "Dashboard updates after Writing",
+          whatToDo: "Submit a Writing response and return to the Dashboard.",
+          expected: "Recent activity or progress reflects the Writing submission.",
+        },
+        {
+          title: "Progress page updates after Writing",
+          whatToDo: "Submit Writing feedback and open the Progress page.",
+          expected: "Writing progress or band estimate reflects the submission.",
+        },
+      ],
+    },
+    {
+      section: "Error Handling",
+      items: [
+        {
+          title: "Refresh reloads safely",
+          whatToDo: "Open Writing and refresh the browser.",
+          expected: "The Writing screen reloads without a crash. Unsaved draft text may reset in this MVP.",
+        },
+        {
+          title: "Mobile layout remains usable",
+          whatToDo: "Test Writing at a phone-sized width.",
+          expected: "Prompt, editor, buttons, and feedback fit without overlapping.",
+        },
+        {
+          title: "Feedback appears quickly",
+          whatToDo: "Submit a Writing draft and watch the feedback area.",
+          expected: "Feedback appears promptly because this MVP uses deterministic feedback logic.",
+        },
+        {
+          title: "No AI Writing claim appears",
+          whatToDo: "Read the Writing feedback placeholder text before submitting.",
+          expected: "The app honestly says full AI Writing scoring is deferred.",
         },
       ],
     },
@@ -1038,9 +1422,16 @@ const Renderer = {
 
   setGeneratedExport(key, markdown) {
     const output = document.getElementById("generatedExport");
+    const container = output.closest(".generated-output");
     output.value = markdown;
     output.dataset.exportKey = key;
     setMode("engineering");
+    window.setTimeout(() => {
+      container?.scrollIntoView({ behavior: "smooth", block: "center" });
+      output.focus({ preventScroll: true });
+      container?.classList.add("generated-output-focus");
+      window.setTimeout(() => container?.classList.remove("generated-output-focus"), 1600);
+    }, 0);
     Utils.toast(GENERATED_EXPORTS[key].title);
   },
 
@@ -1057,7 +1448,7 @@ const Renderer = {
           <div class="empty-state">
             <p class="eyebrow">Future Module</p>
             <h2>${Utils.escapeHtml(module.name)} QA data has not been populated yet.</h2>
-            <p>This module is part of the future QA Manager structure. Reading is currently populated.</p>
+            <p>This module is part of the future QA Manager structure. Reading, Listening, and Writing are currently populated.</p>
           </div>
         </section>
       `;

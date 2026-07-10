@@ -48,7 +48,7 @@ Version 4 keeps the engineering power but changes the default experience:
 
 ## Current Scope
 
-The Reading module is populated with QA data.
+The Reading, Listening, and Writing modules are populated with guided QA data and are ready to test.
 
 The architecture already includes module metadata for future expansion:
 
@@ -64,7 +64,7 @@ The architecture already includes module metadata for future expansion:
 - AI
 - Admin
 
-Only Reading is populated in this version.
+Other modules remain available as planned future QA areas.
 
 ## Core Features
 
@@ -498,7 +498,7 @@ Future changes should be driven by real QA usage and confirmed defects, not spec
 
 Recommended operating rule:
 
-- Use the app for BandUp Reading QA.
+- Use the app for BandUp Reading, Listening, and Writing QA.
 - Export session JSON at the end of meaningful QA sessions.
 - Use generated Markdown as proposed documentation only.
 - Let Codex review and apply generated documentation to the main BandUp repository.
