@@ -323,6 +323,10 @@ h3 {
   margin-top: 0.35rem;
 }
 
+.export-card label {
+  margin-top: 0.9rem;
+}
+
 .export-actions {
   display: flex;
   flex-wrap: wrap;
@@ -572,9 +576,13 @@ h3 {
 .bug-row {
   align-items: center;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   gap: 1rem;
   padding: 0.9rem;
+}
+
+.bug-row > button {
+  white-space: nowrap;
 }
 
 .bug-select {
@@ -734,7 +742,8 @@ h3 {
   .screenshot-area,
   .screenshot-preview,
   .evidence-images,
-  .section-progress-card {
+  .section-progress-card,
+  .bug-row {
     grid-template-columns: 1fr;
   }
 
@@ -864,8 +873,43 @@ h3 {
 .session-strip {
   align-items: end;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(320px, 1.2fr) auto;
   gap: 1rem;
+}
+
+.timer-panel {
+  align-items: center;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  padding: 0.8rem;
+}
+
+.timer-panel span {
+  color: var(--muted);
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.timer-panel strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.timer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.timer-actions button {
+  padding: 0.55rem 0.7rem;
 }
 
 .checklist {
@@ -1059,6 +1103,7 @@ h3 {
 @media (max-width: 760px) {
   .mode-switch,
   .session-strip,
+  .timer-panel,
   .simple-card-row,
   .problem-header,
   .guidance-grid,

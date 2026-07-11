@@ -17,9 +17,16 @@ const MODULES = [
 
 const SEVERITIES = ["MVP Blocker", "Bug", "UX Improvement", "Post-MVP Enhancement"];
 const PRIORITIES = ["Critical", "High", "Medium", "Low"];
-const WORK_STATUSES = ["Open", "In Progress", "Fixed", "Retest Required", "Closed"];
+const WORK_STATUSES = ["Open", "In Progress", "Fixed", "Verified", "Closed"];
+const ACTIVE_BUG_STATUSES = new Set(["Open", "In Progress", "Fixed", "Verified"]);
 const BUG_CLOSED_STATUSES = new Set(["Closed"]);
-const BUG_OPEN_STATUSES = new Set(["Open", "In Progress", "Fixed", "Retest Required"]);
+const BUG_OPEN_STATUSES = ACTIVE_BUG_STATUSES;
+const EXPORT_SCOPES = {
+  open: "open-bugs",
+  module: "current-module",
+  session: "current-session",
+  history: "project-history",
+};
 const GENERATED_EXPORTS = {
   projectStatus: {
     filename: "project-status-qa-update.md",
@@ -848,6 +855,11 @@ const Utils = {
     };
   },
 
+  id() {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+    return `local-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  },
+
   download(filename, content, type) {
     const blob = new Blob([content], { type });
     const url = URL.createObjectURL(blob);
@@ -889,9 +901,15 @@ const Storage = {
   defaultState() {
     const now = Utils.nowParts();
     return {
-      schemaVersion: 2,
+      schemaVersion: 3,
       appVersion: APP_VERSION,
+      sessionId: Utils.id(),
       sessionStartedAt: now.iso,
+      timing: {
+        session: { elapsedMs: 0, isRunning: false, lastStartedAt: "" },
+        project: { elapsedMs: 0, isRunning: false, lastStartedAt: "" },
+        modules: {},
+      },
       session: {
         projectName: "BandUp",
         moduleName: "reading",
@@ -939,10 +957,14 @@ const Storage = {
   },
 
   merge(base, saved) {
+    const timing = this.mergeTiming(base.timing, saved.timing || {});
     return {
       ...base,
       ...saved,
+      schemaVersion: 3,
+      sessionId: saved.sessionId || base.sessionId,
       session: { ...base.session, ...(saved.session || {}) },
+      timing,
       counters: { ...base.counters, ...(saved.counters || {}) },
       selectedBugIds: Array.isArray(saved.selectedBugIds) ? saved.selectedBugIds : [],
       ui: {
@@ -951,13 +973,121 @@ const Storage = {
           ...((saved.ui && saved.ui.openSections) || {}),
         },
       },
-      items: { ...(saved.items || {}) },
+      items: this.normalizeItems(saved.items || {}),
     };
+  },
+
+  mergeTiming(base, saved) {
+    const normalizeBucket = (bucket = {}) => ({
+      elapsedMs: Number(bucket.elapsedMs) || 0,
+      isRunning: false,
+      lastStartedAt: "",
+    });
+    const modules = Object.fromEntries(
+      Object.entries(saved.modules || {}).map(([key, bucket]) => [key, normalizeBucket(bucket)]),
+    );
+    return {
+      session: normalizeBucket(saved.session || base.session),
+      project: normalizeBucket(saved.project || base.project),
+      modules,
+    };
+  },
+
+  normalizeItems(items) {
+    return Object.fromEntries(
+      Object.entries(items).map(([id, item]) => [
+        id,
+        {
+          ...item,
+          workStatus: item.workStatus === "Retest Required" ? "Fixed" : item.workStatus || "Open",
+          archived: Boolean(item.archived),
+          statusHistory: Array.isArray(item.statusHistory) ? item.statusHistory : [],
+          sessionId: item.sessionId || "",
+        },
+      ]),
+    );
   },
 };
 
 let state = Storage.load();
 let focusedCardId = null;
+
+const Timing = {
+  now() {
+    return Date.now();
+  },
+
+  ensure() {
+    state.timing = state.timing || Storage.defaultState().timing;
+    state.timing.session = state.timing.session || { elapsedMs: 0, isRunning: false, lastStartedAt: "" };
+    state.timing.project = state.timing.project || { elapsedMs: 0, isRunning: false, lastStartedAt: "" };
+    state.timing.modules = state.timing.modules || {};
+    this.moduleBucket(state.session.moduleName);
+  },
+
+  moduleBucket(moduleKey = state.session.moduleName) {
+    state.timing.modules[moduleKey] = state.timing.modules[moduleKey] || {
+      elapsedMs: 0,
+      isRunning: false,
+      lastStartedAt: "",
+    };
+    return state.timing.modules[moduleKey];
+  },
+
+  elapsed(bucket) {
+    if (!bucket) return 0;
+    const base = Number(bucket.elapsedMs) || 0;
+    if (!bucket.isRunning || !bucket.lastStartedAt) return base;
+    return base + Math.max(0, this.now() - new Date(bucket.lastStartedAt).getTime());
+  },
+
+  start() {
+    this.ensure();
+    const startedAt = new Date().toISOString();
+    [state.timing.session, state.timing.project, this.moduleBucket()].forEach((bucket) => {
+      if (bucket.isRunning) return;
+      bucket.isRunning = true;
+      bucket.lastStartedAt = startedAt;
+    });
+  },
+
+  pause() {
+    this.ensure();
+    [state.timing.session, state.timing.project, this.moduleBucket()].forEach((bucket) => {
+      this.pauseBucket(bucket);
+    });
+  },
+
+  pauseBucket(bucket) {
+    if (!bucket?.isRunning) return;
+    bucket.elapsedMs = this.elapsed(bucket);
+    bucket.isRunning = false;
+    bucket.lastStartedAt = "";
+  },
+
+  resetSession() {
+    this.ensure();
+    state.sessionId = Utils.id();
+    state.sessionStartedAt = new Date().toISOString();
+    state.timing.session = { elapsedMs: 0, isRunning: false, lastStartedAt: "" };
+    state.timing.modules[state.session.moduleName] = { elapsedMs: 0, isRunning: false, lastStartedAt: "" };
+  },
+
+  switchModule(previousModule, nextModule) {
+    this.ensure();
+    const wasRunning = this.moduleBucket(previousModule).isRunning;
+    this.pauseBucket(this.moduleBucket(previousModule));
+    if (wasRunning) {
+      const next = this.moduleBucket(nextModule);
+      next.isRunning = true;
+      next.lastStartedAt = new Date().toISOString();
+    }
+  },
+
+  formatted(bucket) {
+    return formatDuration(this.elapsed(bucket));
+  },
+};
 
 const QAState = {
   getCurrentModule() {
@@ -1014,6 +1144,9 @@ const QAState = {
         screenshots: [],
         createdAt: "",
         updatedAt: "",
+        archived: false,
+        statusHistory: [],
+        sessionId: "",
       };
     }
     return state.items[id];
@@ -1027,7 +1160,18 @@ const QAState = {
     state.counters[module.prefix] = next;
     item.bugId = `${module.prefix}-${Utils.bugNumber(next)}`;
     item.createdAt = item.createdAt || new Date().toISOString();
+    item.sessionId = item.sessionId || state.sessionId;
+    item.statusHistory = item.statusHistory || [];
+    item.statusHistory.push({ status: "Open", at: new Date().toISOString() });
     return item.bugId;
+  },
+
+  setWorkStatus(item, status) {
+    if (item.workStatus === status) return;
+    item.workStatus = status;
+    item.updatedAt = new Date().toISOString();
+    item.statusHistory = item.statusHistory || [];
+    item.statusHistory.push({ status, at: item.updatedAt });
   },
 
   setResult(item, moduleKey, result) {
@@ -1054,7 +1198,34 @@ const QAState = {
   },
 
   getUnresolvedBugs() {
-    return this.getBugs().filter(({ item }) => !BUG_CLOSED_STATUSES.has(item.workStatus));
+    return this.getBugs().filter(({ item }) => !item.archived && !BUG_CLOSED_STATUSES.has(item.workStatus));
+  },
+
+  getActiveBugs() {
+    return this.getBugs().filter(({ item }) => !item.archived && ACTIVE_BUG_STATUSES.has(item.workStatus));
+  },
+
+  getClosedBugs() {
+    return this.getBugs().filter(({ item }) => !item.archived && BUG_CLOSED_STATUSES.has(item.workStatus));
+  },
+
+  getArchivedBugs() {
+    return this.getBugs().filter(({ item }) => item.archived);
+  },
+
+  getCurrentSessionBugs() {
+    return this.getBugs().filter(
+      ({ item }) =>
+        !item.archived &&
+        (item.sessionId === state.sessionId ||
+          (!item.sessionId && item.createdAt && item.createdAt >= state.sessionStartedAt)),
+    );
+  },
+
+  getCurrentModuleBugs() {
+    return this.getBugs().filter(
+      ({ item, module }) => !item.archived && module.key === state.session.moduleName,
+    );
   },
 
   getBugById(bugId) {
@@ -1068,7 +1239,7 @@ const QAState = {
 
   getActionBugs() {
     const selected = this.getSelectedBugs();
-    return selected.length ? selected : this.getUnresolvedBugs();
+    return selected.length ? selected : getScopedBugs(getSelectedExportScope());
   },
 
   setBugSelected(bugId, selected) {
@@ -1098,8 +1269,8 @@ const QAState = {
         ),
       },
       {
-        title: "Retesting",
-        bugs: unresolved.filter(({ item }) => item.workStatus === "Retest Required"),
+        title: "Fixed awaiting verification",
+        bugs: unresolved.filter(({ item }) => item.workStatus === "Fixed"),
       },
       {
         title: "UX improvements",
@@ -1133,14 +1304,25 @@ const QAState = {
       notTested,
       progress: total ? Math.round((completed / total) * 100) : 0,
       bugs,
-      openBugs: bugs.filter(({ item }) => BUG_OPEN_STATUSES.has(item.workStatus)).length,
-      retesting: bugs.filter(({ item }) => item.workStatus === "Retest Required").length,
-      closed: bugs.filter(({ item }) => BUG_CLOSED_STATUSES.has(item.workStatus)).length,
-      mvpBlockers: bugs.filter(({ item }) => item.severity === "MVP Blocker").length,
-      critical: bugs.filter(({ item }) => item.priority === "Critical").length,
-      high: bugs.filter(({ item }) => item.priority === "High").length,
-      medium: bugs.filter(({ item }) => item.priority === "Medium").length,
-      low: bugs.filter(({ item }) => item.priority === "Low").length,
+      openBugs: bugs.filter(({ item }) => !item.archived && BUG_OPEN_STATUSES.has(item.workStatus)).length,
+      retesting: bugs.filter(({ item }) => !item.archived && item.workStatus === "Fixed").length,
+      closed: bugs.filter(({ item }) => !item.archived && BUG_CLOSED_STATUSES.has(item.workStatus)).length,
+      archived: bugs.filter(({ item }) => item.archived).length,
+      mvpBlockers: bugs.filter(
+        ({ item }) => !item.archived && ACTIVE_BUG_STATUSES.has(item.workStatus) && item.severity === "MVP Blocker",
+      ).length,
+      critical: bugs.filter(
+        ({ item }) => !item.archived && ACTIVE_BUG_STATUSES.has(item.workStatus) && item.priority === "Critical",
+      ).length,
+      high: bugs.filter(
+        ({ item }) => !item.archived && ACTIVE_BUG_STATUSES.has(item.workStatus) && item.priority === "High",
+      ).length,
+      medium: bugs.filter(
+        ({ item }) => !item.archived && ACTIVE_BUG_STATUSES.has(item.workStatus) && item.priority === "Medium",
+      ).length,
+      low: bugs.filter(
+        ({ item }) => !item.archived && ACTIVE_BUG_STATUSES.has(item.workStatus) && item.priority === "Low",
+      ).length,
     };
   },
 
@@ -1190,6 +1372,7 @@ const Renderer = {
 
   renderAll() {
     this.renderSessionFields();
+    this.renderTimers();
     this.renderChecklist();
     this.renderDashboard();
     this.renderSectionProgress();
@@ -1218,7 +1401,9 @@ const Renderer = {
     ).join("");
     tiles.querySelectorAll("[data-module-tile]").forEach((button) => {
       button.addEventListener("click", () => {
+        const previousModule = state.session.moduleName;
         state.session.moduleName = button.dataset.moduleTile;
+        Timing.switchModule(previousModule, state.session.moduleName);
         persist();
         this.renderModuleOptions();
         this.renderAll();
@@ -1241,8 +1426,10 @@ const Renderer = {
       const input = document.getElementById(field);
       if (!input || input.readOnly) return;
       input.addEventListener("input", () => {
+        const previousModule = state.session.moduleName;
         state.session[field] = input.value;
         if (field === "moduleName") {
+          Timing.switchModule(previousModule, input.value);
           this.renderModuleOptions();
           this.renderAll();
         }
@@ -1304,7 +1491,7 @@ const Renderer = {
       this.setGeneratedExport("summary", Exporter.buildQaSummary());
     });
     document.getElementById("exportBugsReport").addEventListener("click", () => {
-      this.setGeneratedExport("bugs", Exporter.buildBugsOnlyReport());
+      this.setGeneratedExport("bugs", Exporter.buildBugsOnlyReport(getScopedBugs(getSelectedExportScope())));
     });
     document.getElementById("generateReleaseRecommendation").addEventListener("click", () => {
       this.setGeneratedExport("releaseRecommendation", Exporter.buildReleaseRecommendation());
@@ -1313,16 +1500,25 @@ const Renderer = {
       this.setGeneratedExport("architectReview", Exporter.buildArchitectReview(QAState.getActionBugs()));
     });
     document.getElementById("prepareCodexTask").addEventListener("click", () => {
-      this.setGeneratedExport("codex", Exporter.buildCodexTask());
+      this.setGeneratedExport(
+        "codex",
+        Exporter.buildCodexTask(getScopedBugs(getSelectedExportScope()), describeExportScope()),
+      );
     });
     document.getElementById("prepareSelectedCodexTask").addEventListener("click", () => {
-      this.setGeneratedExport("codex", Exporter.buildCodexTask(QAState.getSelectedBugs()));
+      this.setGeneratedExport(
+        "codex",
+        Exporter.buildCodexTask(QAState.getSelectedBugs(), "Selected bugs"),
+      );
     });
     document.getElementById("generateSelectedArchitectReview").addEventListener("click", () => {
       this.setGeneratedExport("architectReview", Exporter.buildArchitectReview(QAState.getSelectedBugs()));
     });
     document.getElementById("exportSelectedBugs").addEventListener("click", () => {
-      this.setGeneratedExport("selectedBugs", Exporter.buildBugsOnlyReport(QAState.getSelectedBugs()));
+      this.setGeneratedExport(
+        "selectedBugs",
+        Exporter.buildBugsOnlyReport(QAState.getSelectedBugs(), "Selected bugs"),
+      );
     });
     document.getElementById("generateGithubIssue").addEventListener("click", () => {
       this.setGeneratedExport("githubIssue", Exporter.buildGithubIssue(QAState.getActionBugs().slice(0, 1)));
@@ -1401,7 +1597,10 @@ const Renderer = {
       Utils.toast("Environment detection refreshed.");
     });
     document.getElementById("completionCodexTask").addEventListener("click", () => {
-      this.setGeneratedExport("codex", Exporter.buildCodexTask());
+      this.setGeneratedExport(
+        "codex",
+        Exporter.buildCodexTask(getScopedBugs(getSelectedExportScope()), describeExportScope()),
+      );
     });
     document.getElementById("completionQaReport").addEventListener("click", () => {
       this.setGeneratedExport("summary", Exporter.buildQaSummary());
@@ -1418,6 +1617,26 @@ const Renderer = {
       .forEach((id) => document.getElementById(id).addEventListener("input", () => {
         this.renderBugList();
       }));
+    document.getElementById("startTimer").addEventListener("click", () => {
+      Timing.start();
+      persistAndRender({ skipChecklist: true });
+    });
+    document.getElementById("pauseTimer").addEventListener("click", () => {
+      Timing.pause();
+      persistAndRender({ skipChecklist: true });
+    });
+    document.getElementById("resetTimer").addEventListener("click", () => {
+      const confirmed = window.confirm("Start a new QA session timer? Existing bugs and evidence stay saved.");
+      if (!confirmed) return;
+      Timing.resetSession();
+      persistAndRender({ skipChecklist: true });
+    });
+  },
+
+  renderTimers() {
+    Timing.ensure();
+    setText("sessionElapsed", Timing.formatted(state.timing.session));
+    setText("moduleElapsed", Timing.formatted(Timing.moduleBucket()));
   },
 
   setGeneratedExport(key, markdown) {
@@ -1549,7 +1768,7 @@ const Renderer = {
         card.querySelector('[data-action="codex-bug"]').addEventListener("click", () => {
           const bug = ensureBugForCard(item, entry);
           if (!bug) return;
-          this.setGeneratedExport("codex", Exporter.buildCodexTask([bug]));
+          this.setGeneratedExport("codex", Exporter.buildCodexTask([bug], item.bugId));
         });
         card.querySelector('[data-action="architect-bug"]').addEventListener("click", () => {
           const bug = ensureBugForCard(item, entry);
@@ -1580,7 +1799,12 @@ const Renderer = {
           }
           field.value = item[name] || "";
           const updateField = () => {
-            item[name] = field.value;
+            if (name === "workStatus") {
+              QAState.setWorkStatus(item, field.value);
+            } else {
+              item[name] = field.value;
+              item.updatedAt = new Date().toISOString();
+            }
             item.updatedAt = new Date().toISOString();
             persistAndRender({ skipChecklist: true });
           };
@@ -1660,7 +1884,7 @@ const Renderer = {
     setText("completionPassed", stats.passed);
     setText("completionFailed", stats.failed);
     setText("completionSkipped", stats.notTested);
-    setText("completionTime", formatElapsedTime(state.sessionStartedAt));
+    setText("completionTime", Timing.formatted(state.timing.session));
   },
 
   renderSectionProgress() {
@@ -1715,7 +1939,11 @@ const Renderer = {
               <span>${Utils.escapeHtml(item.severity || "No severity")}</span>
               <span>${Utils.escapeHtml(item.priority || "No priority")}</span>
               <span>${Utils.escapeHtml(item.workStatus || "Open")}</span>
+              ${item.archived ? "<span>Archived</span>" : ""}
             </div>
+            <button class="secondary" type="button" data-toggle-archive="${Utils.escapeHtml(item.bugId)}">
+              ${item.archived ? "Restore" : "Archive"}
+            </button>
           </article>
         `;
       })
@@ -1724,6 +1952,15 @@ const Renderer = {
     container.querySelectorAll("[data-select-bug]").forEach((checkbox) => {
       checkbox.addEventListener("change", () => {
         QAState.setBugSelected(checkbox.dataset.selectBug, checkbox.checked);
+        persistAndRender({ skipChecklist: true });
+      });
+    });
+    container.querySelectorAll("[data-toggle-archive]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const bug = QAState.getBugById(button.dataset.toggleArchive);
+        if (!bug) return;
+        bug.item.archived = !bug.item.archived;
+        bug.item.updatedAt = new Date().toISOString();
         persistAndRender({ skipChecklist: true });
       });
     });
@@ -1785,6 +2022,8 @@ const Exporter = {
       `- Passed: ${stats.passed}`,
       `- Failed: ${stats.failed}`,
       `- Not tested: ${stats.notTested}`,
+      `- Active session time: ${Timing.formatted(state.timing.session)}`,
+      `- Active module time: ${Timing.formatted(Timing.moduleBucket())}`,
       `- MVP blockers: ${stats.mvpBlockers}`,
       `- Open bugs: ${stats.openBugs}`,
       `- Closed bugs: ${stats.closed}`,
@@ -1863,17 +2102,18 @@ const Exporter = {
     ].join("\n");
   },
 
-  buildBugsOnlyReport(inputBugs = QAState.getUnresolvedBugs()) {
+  buildBugsOnlyReport(inputBugs = QAState.getUnresolvedBugs(), scopeLabel = describeExportScope()) {
     const bugs = inputBugs;
     const lines = [
-      "# Unresolved Bugs Report",
+      "# Bugs Report",
       "",
       `Generated: ${new Date().toISOString()}`,
+      `Scope: ${scopeLabel}`,
       "",
     ];
 
     if (!bugs.length) {
-      lines.push("No unresolved bugs recorded.", "");
+      lines.push("No bugs recorded for this scope.", "");
       return lines.join("\n");
     }
 
@@ -1884,21 +2124,22 @@ const Exporter = {
     return lines.join("\n");
   },
 
-  buildCodexTask(inputBugs = QAState.getUnresolvedBugs()) {
+  buildCodexTask(inputBugs = QAState.getUnresolvedBugs(), scopeLabel = describeExportScope()) {
     const bugs = inputBugs;
     const lines = [
       "# Codex QA Bug-Fix Task",
       "",
       "Codex,",
       "",
-      "MVP QA has identified the following unresolved issues. Investigate only the listed issues. Preserve existing architecture and avoid unrelated changes.",
+      "MVP QA has identified the following scoped issues. Investigate only the listed issues. Preserve existing architecture and avoid unrelated changes.",
       "",
       `Generated: ${new Date().toISOString()}`,
+      `Scope: ${scopeLabel}`,
       "",
     ];
 
     if (!bugs.length) {
-      lines.push("No unresolved bugs are currently recorded.", "");
+      lines.push("No bugs are currently recorded for this scope.", "");
     } else {
       bugs.forEach((bug) => {
         lines.push(...this.codexBugBlock(bug), "");
@@ -2293,6 +2534,9 @@ ${screenshots ? `<h2>Embedded Evidence</h2>${screenshots}` : ""}
       `- Build time: ${state.session.buildTime || "Not specified"}`,
       `- Test date: ${state.session.testDate || "Not specified"}`,
       `- Test time: ${state.session.testTime || "Not specified"}`,
+      `- Active session time: ${Timing.formatted(state.timing.session)}`,
+      `- Active module time: ${Timing.formatted(Timing.moduleBucket())}`,
+      `- Overall project testing time: ${Timing.formatted(state.timing.project)}`,
       `- Device: ${state.session.deviceName || "Not specified"}`,
       `- Browser: ${state.session.browserName || "Not detected"}`,
       `- Operating system: ${state.session.operatingSystem || "Not detected"}`,
@@ -2518,11 +2762,9 @@ function getQaTitle(item) {
   return typeof item === "string" ? item : item.title;
 }
 
-function formatElapsedTime(startedAt) {
-  if (!startedAt) return "Not tracked";
-  const started = new Date(startedAt).getTime();
-  if (Number.isNaN(started)) return "Not tracked";
-  const minutes = Math.max(1, Math.round((Date.now() - started) / 60000));
+function formatDuration(milliseconds) {
+  const minutes = Math.floor(Math.max(0, milliseconds) / 60000);
+  if (minutes < 1) return "0 min";
   if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
@@ -2578,6 +2820,27 @@ function ensureBugForCard(item, entry) {
   };
 }
 
+function getSelectedExportScope() {
+  return document.getElementById("exportScope")?.value || EXPORT_SCOPES.session;
+}
+
+function getScopedBugs(scope = EXPORT_SCOPES.open) {
+  if (scope === EXPORT_SCOPES.module) return QAState.getCurrentModuleBugs();
+  if (scope === EXPORT_SCOPES.session) return QAState.getCurrentSessionBugs();
+  if (scope === EXPORT_SCOPES.history) return QAState.getBugs();
+  return QAState.getUnresolvedBugs();
+}
+
+function describeExportScope(scope = getSelectedExportScope()) {
+  const labels = {
+    [EXPORT_SCOPES.open]: "Open bugs",
+    [EXPORT_SCOPES.module]: "Current module",
+    [EXPORT_SCOPES.session]: "Current QA session",
+    [EXPORT_SCOPES.history]: "Entire project history",
+  };
+  return labels[scope] || labels[EXPORT_SCOPES.open];
+}
+
 function applyBugFilters(bugs) {
   const query = document.getElementById("bugSearch").value.trim().toLowerCase();
   const moduleFilter = document.getElementById("filterModule").value;
@@ -2610,8 +2873,10 @@ function applyBugFilters(bugs) {
     if (severity && item.severity !== severity) return false;
     if (priority && item.priority !== priority) return false;
     if (status && item.workStatus !== status) return false;
-    if (bugState === "open" && !BUG_OPEN_STATUSES.has(item.workStatus)) return false;
+    if (bugState === "active" && (item.archived || !ACTIVE_BUG_STATUSES.has(item.workStatus))) return false;
     if (bugState === "closed" && !BUG_CLOSED_STATUSES.has(item.workStatus)) return false;
+    if (bugState === "archived" && !item.archived) return false;
+    if (bugState !== "archived" && item.archived) return false;
     return true;
   });
 }
@@ -2648,8 +2913,19 @@ function fileToScreenshot(file) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  Timing.ensure();
   state.session = { ...state.session, ...Environment.detect() };
   Renderer.init();
+  persist();
+  window.setInterval(() => {
+    if (!state.timing?.session?.isRunning) return;
+    Renderer.renderTimers();
+    Renderer.renderCompletionSummary();
+  }, 1000);
+});
+
+window.addEventListener("beforeunload", () => {
+  Timing.pause();
   persist();
 });
 

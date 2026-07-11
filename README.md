@@ -125,6 +125,14 @@ The session and workspace metadata records:
 - test time
 - device
 
+Testing Mode also includes an explicit QA timer:
+
+- Start begins active timing for the current QA session, current module, and overall project time.
+- Pause stops active timing without clearing data.
+- New QA Session resets the current session/module timer and creates a new export boundary while keeping existing bugs and evidence.
+
+The timer measures active testing time only. It does not infer testing duration from how long the browser tab or saved project has existed.
+
 The app also detects:
 
 - browser
@@ -168,8 +176,8 @@ ADMIN
 
 The dashboard shows:
 
-- open bugs
-- retesting
+- open or active bugs
+- fixed bugs awaiting Founder verification
 - closed bugs
 - MVP blockers
 - critical priority
@@ -227,9 +235,22 @@ Bug filtering supports:
 - severity
 - priority
 - status
-- open bugs
+- active bugs
 - closed bugs
+- archived bugs
 - bug ID search
+
+Lifecycle states are:
+
+- Open
+- In Progress
+- Fixed
+- Verified
+- Closed
+
+Fixed issues are not automatically verified or closed. Fred must manually retest and mark them Verified before they are closed.
+
+Archived bugs are retained for history but removed from normal active views. They can still be viewed and exported using the Archived filter or Entire project history export scope.
 
 ### Engineering Workspace Exports
 
@@ -264,12 +285,21 @@ Engineering documentation exports:
 - generated `PROJECT_STATUS.md` update section
 - generated `NEXT_DEVELOPMENT_SPRINT.md` update section
 - QA executive summary for the Founder and Principal Software Architect
-- unresolved bugs-only report
+- scoped bugs report
 - release recommendation
 - architect review
 - Codex task handoff document
 
 The QA Manager never overwrites engineering documentation. It generates proposed Markdown that Codex can review before updating the BandUp repository.
+
+Export scope controls are available for engineering handoff:
+
+- Current QA session
+- Open bugs
+- Current module
+- Entire project history
+
+Current QA session is the default so historical bugs are not accidentally included in a new Codex task.
 
 ### Per-Bug Actions
 
@@ -293,7 +323,7 @@ Selected-bug actions include:
 - Export Selected Bugs
 - Generate GitHub Issues
 
-If no bugs are selected, workspace-level actions use unresolved bugs where appropriate.
+If no bugs are selected, workspace-level actions use the selected export scope.
 
 ### Single Bug Export
 
@@ -327,7 +357,7 @@ Each single bug export includes:
 
 ### Codex Task Export
 
-Prepare Codex Task generates a Markdown task document for unresolved issues.
+Prepare Codex Task generates a Markdown task document for the selected export scope.
 
 The generated task includes:
 

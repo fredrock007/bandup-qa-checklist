@@ -57,6 +57,21 @@
               <option value="Production">Production</option>
             </select>
           </label>
+          <div class="timer-panel" aria-label="QA timer">
+            <div>
+              <span>Session</span>
+              <strong id="sessionElapsed">0 min</strong>
+            </div>
+            <div>
+              <span>Module</span>
+              <strong id="moduleElapsed">0 min</strong>
+            </div>
+            <div class="timer-actions">
+              <button id="startTimer" type="button">Start</button>
+              <button id="pauseTimer" class="secondary" type="button">Pause</button>
+              <button id="resetTimer" class="secondary" type="button">New QA Session</button>
+            </div>
+          </div>
           <span id="saveState" class="save-state">Saved locally</span>
         </section>
 
@@ -190,7 +205,7 @@
             <strong id="openBugs">0</strong>
           </article>
           <article class="dashboard-card warning">
-            <span>Retesting</span>
+            <span>Fixed Awaiting Verification</span>
             <strong id="retestingBugs">0</strong>
           </article>
           <article class="dashboard-card pass">
@@ -272,6 +287,15 @@
               <p class="eyebrow">AI Tasks</p>
               <h3>Selected Bug Handoff</h3>
               <p>Generate focused AI-ready task documents for selected bugs only.</p>
+              <label>
+                Export scope
+                <select id="exportScope">
+                  <option value="current-session">Current QA session</option>
+                  <option value="open-bugs">Open bugs</option>
+                  <option value="current-module">Current module</option>
+                  <option value="project-history">Entire project history</option>
+                </select>
+              </label>
               <div class="export-actions">
                 <button id="prepareCodexTask" type="button">Prepare Codex Task</button>
                 <button id="prepareSelectedCodexTask" type="button">Prepare Selected Codex Task</button>
@@ -356,8 +380,9 @@
               Bug state
               <select id="filterBugState">
                 <option value="">All bugs</option>
-                <option value="open">Open bugs</option>
+                <option value="active">Active bugs</option>
                 <option value="closed">Closed bugs</option>
+                <option value="archived">Archived bugs</option>
               </select>
             </label>
           </div>
@@ -462,7 +487,7 @@
                 <option value="Open">Open</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Fixed">Fixed</option>
-                <option value="Retest Required">Retest Required</option>
+                <option value="Verified">Verified</option>
                 <option value="Closed">Closed</option>
               </select>
             </label>
