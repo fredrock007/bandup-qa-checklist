@@ -873,7 +873,7 @@ h3 {
 .session-strip {
   align-items: end;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(320px, 1.2fr) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -886,6 +886,8 @@ h3 {
   gap: 0.9rem;
   grid-template-columns: minmax(0, 1fr) auto;
   padding: 0.8rem;
+  grid-column: 1 / -1;
+  width: 100%;
 }
 
 .timer-metrics {
@@ -926,6 +928,10 @@ h3 {
 .timer-actions button {
   padding: 0.55rem 0.7rem;
   white-space: nowrap;
+}
+
+.session-strip .save-state {
+  grid-column: 1 / -1;
 }
 
 .checklist {
@@ -1118,11 +1124,14 @@ h3 {
 
 @media (max-width: 760px) {
   .mode-switch,
-  .session-strip,
   .simple-card-row,
   .problem-header,
   .guidance-grid,
   .completion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-strip {
     grid-template-columns: 1fr;
   }
 

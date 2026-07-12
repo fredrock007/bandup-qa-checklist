@@ -48,7 +48,7 @@ Version 4 keeps the engineering power but changes the default experience:
 
 ## Current Scope
 
-The Reading, Listening, and Writing modules are populated with guided QA data and are ready to test.
+The Authentication, Dashboard, Reading, Listening, Writing, and Speaking modules are populated with guided QA data and are ready to test.
 
 The architecture already includes module metadata for future expansion:
 

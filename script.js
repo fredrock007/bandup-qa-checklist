@@ -2,12 +2,12 @@ const APP_VERSION = "4.0.0";
 const STORAGE_KEY = "bandup-qa-manager-v2";
 
 const MODULES = [
-  { key: "authentication", name: "Authentication", prefix: "AUTH", populated: false },
-  { key: "dashboard", name: "Dashboard", prefix: "DASH", populated: false },
+  { key: "authentication", name: "Authentication", prefix: "AUTH", populated: true },
+  { key: "dashboard", name: "Dashboard", prefix: "DASH", populated: true },
   { key: "reading", name: "Reading", prefix: "READ", populated: true },
   { key: "listening", name: "Listening", prefix: "LIST", populated: true },
   { key: "writing", name: "Writing", prefix: "WRITE", populated: true },
-  { key: "speaking", name: "Speaking", prefix: "SPEAK", populated: false },
+  { key: "speaking", name: "Speaking", prefix: "SPEAK", populated: true },
   { key: "mock-exams", name: "Mock Exams", prefix: "MOCK", populated: false },
   { key: "profile", name: "Profile", prefix: "PROFILE", populated: false },
   { key: "settings", name: "Settings", prefix: "SET", populated: false },
@@ -83,6 +83,180 @@ const GENERATED_EXPORTS = {
 };
 
 const QA_DATA = {
+  authentication: [
+    {
+      section: "Navigation",
+      items: [
+        {
+          title: "Sign in screen opens",
+          whatToDo: "Open the Authentication module from the module tiles.",
+          expected: "The sign in screen loads without errors.",
+        },
+        {
+          title: "Sign up mode is available",
+          whatToDo: "Switch from Sign in to Sign up.",
+          expected: "The create account form appears clearly.",
+        },
+        {
+          title: "Guest mode is available",
+          whatToDo: "Look for the guest option on the Authentication screen.",
+          expected: "You can continue as a guest without getting stuck.",
+        },
+      ],
+    },
+    {
+      section: "Sign In",
+      items: [
+        {
+          title: "Valid sign in works",
+          whatToDo: "Sign in with a working account.",
+          expected: "You move into the app after signing in.",
+        },
+        {
+          title: "Invalid sign in shows an error",
+          whatToDo: "Try a wrong email or password.",
+          expected: "The app shows a clear message instead of failing silently.",
+        },
+        {
+          title: "Sign out returns to the sign in screen",
+          whatToDo: "Sign in, then sign out.",
+          expected: "You return to the Authentication screen.",
+        },
+      ],
+    },
+    {
+      section: "Guest Mode",
+      items: [
+        {
+          title: "Continue as guest works",
+          whatToDo: "Choose Continue as guest.",
+          expected: "The app opens in guest mode and shows the guest label.",
+        },
+        {
+          title: "Guest messaging is clear",
+          whatToDo: "Look at the guest information on the Authentication screen.",
+          expected: "The screen explains what guest mode can and cannot do.",
+        },
+        {
+          title: "Guest progress stays local",
+          whatToDo: "Do a small guest action, then refresh the browser.",
+          expected: "Guest progress remains on this browser and is not treated as an account.",
+        },
+      ],
+    },
+    {
+      section: "Password Reset",
+      items: [
+        {
+          title: "Forgot password opens the reset flow",
+          whatToDo: "Use the Forgot password option.",
+          expected: "The reset form appears and can send a reset email.",
+        },
+        {
+          title: "Reset link opens correctly",
+          whatToDo: "Open the password reset link from email.",
+          expected: "The reset page opens instead of a broken page.",
+        },
+        {
+          title: "New password signs in",
+          whatToDo: "Set a new password and sign in again.",
+          expected: "The new password works and you can return to the app.",
+        },
+      ],
+    },
+    {
+      section: "Recovery",
+      items: [
+        {
+          title: "Refresh reloads safely",
+          whatToDo: "Refresh the Authentication page.",
+          expected: "The screen reloads without a crash.",
+        },
+        {
+          title: "Error messages are readable",
+          whatToDo: "Trigger a sign in or sign up problem.",
+          expected: "The message is clear and easy to understand.",
+        },
+      ],
+    },
+  ],
+  dashboard: [
+    {
+      section: "Overview",
+      items: [
+        {
+          title: "Dashboard loads after sign in",
+          whatToDo: "Sign in and open the Dashboard.",
+          expected: "The Dashboard opens without errors.",
+        },
+        {
+          title: "Welcome message fits the learner",
+          whatToDo: "Open the Dashboard as a new user and as a returning user.",
+          expected: "The greeting feels appropriate for the learner's current state.",
+        },
+        {
+          title: "Main summary cards are visible",
+          whatToDo: "Look at the top Dashboard cards.",
+          expected: "The main progress cards are visible and readable.",
+        },
+      ],
+    },
+    {
+      section: "Recommendations",
+      items: [
+        {
+          title: "Continue learning points to the weakest skill",
+          whatToDo: "Look for the main action on the Dashboard.",
+          expected: "The button takes you to a useful next practice area.",
+        },
+        {
+          title: "Today's mission is clear",
+          whatToDo: "Read the Today's mission panel.",
+          expected: "The learner can understand what to do next.",
+        },
+        {
+          title: "Mission actions open the right module",
+          whatToDo: "Use a Start button from Today's mission.",
+          expected: "The correct learning module opens.",
+        },
+      ],
+    },
+    {
+      section: "Progress",
+      items: [
+        {
+          title: "Recent activity is visible",
+          whatToDo: "Look at the recent activity section.",
+          expected: "The app shows the learner's latest work or an empty state.",
+        },
+        {
+          title: "Progress updates after practice",
+          whatToDo: "Complete a small activity, then return to the Dashboard.",
+          expected: "Dashboard numbers or activity reflect the new work.",
+        },
+        {
+          title: "Empty state is useful for new users",
+          whatToDo: "Open the Dashboard before completing any work.",
+          expected: "The app explains what to do next instead of showing a blank space.",
+        },
+      ],
+    },
+    {
+      section: "Layout",
+      items: [
+        {
+          title: "Dashboard is readable on mobile",
+          whatToDo: "View the Dashboard at a phone-sized width.",
+          expected: "Cards and buttons fit without overlap.",
+        },
+        {
+          title: "Dashboard refreshes safely",
+          whatToDo: "Refresh the Dashboard page.",
+          expected: "The page reloads without losing the current user view.",
+        },
+      ],
+    },
+  ],
   reading: [
     {
       section: "Navigation",
@@ -411,6 +585,108 @@ const QA_DATA = {
           title: "Screenshots do not break the QA Manager",
           whatToDo: "Paste or upload a screenshot into a QA item.",
           expected: "The screenshot appears in the QA Manager and the page still works normally.",
+        },
+      ],
+    },
+  ],
+  speaking: [
+    {
+      section: "Navigation",
+      items: [
+        {
+          title: "Speaking opens from the app",
+          whatToDo: "Open the Speaking module from the module tiles.",
+          expected: "The Speaking page loads correctly.",
+        },
+        {
+          title: "Prompt buttons switch cleanly",
+          whatToDo: "Select a different Speaking prompt.",
+          expected: "The prompt changes and the page stays usable.",
+        },
+        {
+          title: "Current prompt is easy to see",
+          whatToDo: "Look at the selected Speaking prompt.",
+          expected: "The active prompt is obvious.",
+        },
+      ],
+    },
+    {
+      section: "Preparation and Timer",
+      items: [
+        {
+          title: "Start practice begins the timer",
+          whatToDo: "Press Start practice.",
+          expected: "The Speaking timer begins or preparation starts as expected.",
+        },
+        {
+          title: "Pause and resume work",
+          whatToDo: "Start practice, then Pause and Resume.",
+          expected: "The practice timer pauses and continues correctly.",
+        },
+        {
+          title: "Reset clears the attempt",
+          whatToDo: "Start practice, then press Reset.",
+          expected: "The Speaking attempt returns to its initial state.",
+        },
+      ],
+    },
+    {
+      section: "Response",
+      items: [
+        {
+          title: "Typing a response works",
+          whatToDo: "Type a short Speaking response.",
+          expected: "The text area accepts your answer normally.",
+        },
+        {
+          title: "Word count updates",
+          whatToDo: "Type a few words and watch the counter.",
+          expected: "The word count changes while you type.",
+        },
+        {
+          title: "Submit feedback becomes available",
+          whatToDo: "Type enough words to submit.",
+          expected: "The feedback action becomes available when the response is ready.",
+        },
+      ],
+    },
+    {
+      section: "Feedback",
+      items: [
+        {
+          title: "Speaking feedback appears after submit",
+          whatToDo: "Submit a Speaking response.",
+          expected: "The app shows the estimated band and feedback sections.",
+        },
+        {
+          title: "Better version is visible",
+          whatToDo: "Read the feedback after submitting.",
+          expected: "The improved example is easy to find.",
+        },
+        {
+          title: "Follow-up question is shown",
+          whatToDo: "Read the feedback after submitting.",
+          expected: "A follow-up question or next step is visible.",
+        },
+      ],
+    },
+    {
+      section: "Progress and Recovery",
+      items: [
+        {
+          title: "Speaking progress is recorded",
+          whatToDo: "Submit a Speaking response, then check the Dashboard or Progress page.",
+          expected: "The new Speaking practice is reflected in progress.",
+        },
+        {
+          title: "Refresh reloads safely",
+          whatToDo: "Open Speaking and refresh the browser.",
+          expected: "The page reloads safely without breaking the layout.",
+        },
+        {
+          title: "Mobile layout remains usable",
+          whatToDo: "Test Speaking at a phone-sized width.",
+          expected: "Prompt, timer, response area, and feedback fit the screen.",
         },
       ],
     },
