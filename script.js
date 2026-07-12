@@ -1619,16 +1619,19 @@ const Renderer = {
       }));
     document.getElementById("startTimer").addEventListener("click", () => {
       Timing.start();
+      Renderer.renderTimers();
       persistAndRender({ skipChecklist: true });
     });
     document.getElementById("pauseTimer").addEventListener("click", () => {
       Timing.pause();
+      Renderer.renderTimers();
       persistAndRender({ skipChecklist: true });
     });
     document.getElementById("resetTimer").addEventListener("click", () => {
       const confirmed = window.confirm("Start a new QA session timer? Existing bugs and evidence stay saved.");
       if (!confirmed) return;
       Timing.resetSession();
+      Renderer.renderTimers();
       persistAndRender({ skipChecklist: true });
     });
   },
@@ -2746,6 +2749,7 @@ function persist() {
 
 function persistAndRender(options = {}) {
   persist();
+  Renderer.renderTimers();
   if (!options.skipChecklist) Renderer.renderChecklist();
   Renderer.renderDashboard();
   Renderer.renderSectionProgress();

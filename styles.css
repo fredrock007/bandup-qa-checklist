@@ -883,9 +883,22 @@ h3 {
   border: 1px solid var(--border);
   border-radius: 12px;
   display: grid;
-  gap: 0.7rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 0.9rem;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 0.8rem;
+}
+
+.timer-metrics {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.timer-metric {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(28, 37, 58, 0.08);
+  border-radius: 12px;
+  padding: 0.8rem 0.9rem;
 }
 
 .timer-panel span {
@@ -898,18 +911,21 @@ h3 {
 
 .timer-panel strong {
   display: block;
-  font-size: 1.1rem;
+  font-size: 1.35rem;
+  line-height: 1.1;
 }
 
 .timer-actions {
   display: flex;
   flex-wrap: wrap;
+  min-width: 0;
   gap: 0.45rem;
   justify-content: flex-end;
 }
 
 .timer-actions button {
   padding: 0.55rem 0.7rem;
+  white-space: nowrap;
 }
 
 .checklist {
@@ -1103,12 +1119,27 @@ h3 {
 @media (max-width: 760px) {
   .mode-switch,
   .session-strip,
-  .timer-panel,
   .simple-card-row,
   .problem-header,
   .guidance-grid,
   .completion-grid {
     grid-template-columns: 1fr;
+  }
+
+  .timer-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .timer-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .timer-actions {
+    justify-content: stretch;
+  }
+
+  .timer-actions button {
+    flex: 1 1 0;
   }
 
   .mode-switch,
