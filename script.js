@@ -8,11 +8,11 @@ const MODULES = [
   { key: "listening", name: "Listening", prefix: "LIST", populated: true },
   { key: "writing", name: "Writing", prefix: "WRITE", populated: true },
   { key: "speaking", name: "Speaking", prefix: "SPEAK", populated: true },
-  { key: "mock-exams", name: "Mock Exams", prefix: "MOCK", populated: false },
-  { key: "profile", name: "Profile", prefix: "PROFILE", populated: false },
-  { key: "settings", name: "Settings", prefix: "SET", populated: false },
-  { key: "ai", name: "AI", prefix: "AI", populated: false },
-  { key: "admin", name: "Admin", prefix: "ADMIN", populated: false },
+  { key: "mock-exams", name: "Mock Exams", prefix: "MOCK", populated: true },
+  { key: "profile", name: "Profile", prefix: "PROFILE", populated: true },
+  { key: "settings", name: "Settings", prefix: "SET", populated: true },
+  { key: "ai", name: "AI", prefix: "AI", populated: true },
+  { key: "admin", name: "Admin", prefix: "ADMIN", populated: true },
 ];
 
 const SEVERITIES = ["MVP Blocker", "Bug", "UX Improvement", "Post-MVP Enhancement"];
@@ -1075,6 +1075,336 @@ const QA_DATA = {
       ],
     },
   ],
+  "mock-exams": [
+    {
+      section: "Opening a Mock Exam",
+      items: [
+        {
+          title: "Mock Exams opens from the app",
+          whatToDo: "Open Mock Exams from the main navigation.",
+          expected: "The Mock Exams page opens without an error or blank state.",
+        },
+        {
+          title: "Available mock section is clear",
+          whatToDo: "Read the available mock exam options.",
+          expected: "You can tell which section can be started and what it covers.",
+        },
+        {
+          title: "Start action is easy to find",
+          whatToDo: "Choose the Reading mock section.",
+          expected: "A clear action starts the mock section.",
+        },
+      ],
+    },
+    {
+      section: "Timed Practice",
+      items: [
+        {
+          title: "Mock timer starts with the section",
+          whatToDo: "Start the Reading mock section and watch the timer.",
+          expected: "The timer begins and is visible while taking the mock.",
+        },
+        {
+          title: "Question navigation works",
+          whatToDo: "Move between several mock questions.",
+          expected: "The selected question changes without losing the mock state.",
+        },
+        {
+          title: "Answers can be selected and changed",
+          whatToDo: "Choose an answer, then choose a different answer before submitting.",
+          expected: "The latest answer is clearly selected.",
+        },
+      ],
+    },
+    {
+      section: "Submission and Review",
+      items: [
+        {
+          title: "Submitting ends the mock section",
+          whatToDo: "Answer the mock questions and submit the section.",
+          expected: "The mock finishes cleanly and shows the results view.",
+        },
+        {
+          title: "Score and estimated band are visible",
+          whatToDo: "Read the completed mock results.",
+          expected: "Score, accuracy, answered count, and estimated band are clear.",
+        },
+        {
+          title: "Question review explains answers",
+          whatToDo: "Review a completed mock question.",
+          expected: "The correct answer and supporting explanation are available.",
+        },
+      ],
+    },
+    {
+      section: "Recovery and Progress",
+      items: [
+        {
+          title: "Try again starts a fresh mock",
+          whatToDo: "Use Try again after completing a mock section.",
+          expected: "A new mock attempt starts without showing old answers as current answers.",
+        },
+        {
+          title: "Mock completion records progress",
+          whatToDo: "Finish a mock section, then open Dashboard or Progress.",
+          expected: "The completed mock is reflected in the learner's progress.",
+        },
+        {
+          title: "Mock Exams remains usable on mobile",
+          whatToDo: "Test the mock at a phone-sized width.",
+          expected: "Timer, navigation, answers, and results remain readable and usable.",
+        },
+      ],
+    },
+  ],
+  profile: [
+    {
+      section: "Access and Identity",
+      items: [
+        {
+          title: "Profile area opens correctly",
+          whatToDo: "Open the learner profile area from the app navigation.",
+          expected: "The profile view opens without a broken route or blank content.",
+        },
+        {
+          title: "Learner identity is accurate",
+          whatToDo: "Compare the displayed name and account details with the signed-in account.",
+          expected: "The profile shows the correct learner identity.",
+        },
+        {
+          title: "Guest profile state is clear",
+          whatToDo: "Open the profile area in Guest Mode.",
+          expected: "The app clearly identifies guest mode without presenting it as a signed-in profile.",
+        },
+      ],
+    },
+    {
+      section: "Learner Details",
+      items: [
+        {
+          title: "Profile fields are readable",
+          whatToDo: "Review the learner details shown in the profile area.",
+          expected: "Labels and values are clear and not truncated.",
+        },
+        {
+          title: "Editable details save correctly",
+          whatToDo: "Change one supported profile detail and save it.",
+          expected: "The new value is shown after saving without changing unrelated details.",
+        },
+        {
+          title: "Invalid profile input is explained",
+          whatToDo: "Enter an invalid value in a supported editable profile field.",
+          expected: "The app gives a clear validation message and keeps the previous valid data safe.",
+        },
+      ],
+    },
+    {
+      section: "Persistence and Accessibility",
+      items: [
+        {
+          title: "Saved profile details survive refresh",
+          whatToDo: "Save a supported profile change, then refresh the browser.",
+          expected: "Saved account details remain correct after refresh.",
+        },
+        {
+          title: "Profile works with keyboard navigation",
+          whatToDo: "Use Tab and Enter to move through profile controls.",
+          expected: "Interactive controls have visible focus and can be used without a mouse.",
+        },
+        {
+          title: "Profile layout works on mobile",
+          whatToDo: "View the profile area at a phone-sized width.",
+          expected: "Details and controls fit the viewport without overlap or horizontal scrolling.",
+        },
+      ],
+    },
+  ],
+  settings: [
+    {
+      section: "Opening Settings",
+      items: [
+        {
+          title: "Settings opens from the app menu",
+          whatToDo: "Open Settings from the main navigation.",
+          expected: "The Settings screen opens without errors.",
+        },
+        {
+          title: "Account information is readable",
+          whatToDo: "Review the account information shown in Settings.",
+          expected: "The signed-in or guest account state is clear and readable.",
+        },
+        {
+          title: "Settings labels describe their controls",
+          whatToDo: "Read each visible setting label before interacting with it.",
+          expected: "It is clear what each setting changes.",
+        },
+      ],
+    },
+    {
+      section: "Preferences",
+      items: [
+        {
+          title: "Supported preference controls respond",
+          whatToDo: "Change each available preference control once.",
+          expected: "The control responds and its selected state is obvious.",
+        },
+        {
+          title: "Saving a supported preference is confirmed",
+          whatToDo: "Save a supported settings change.",
+          expected: "The app confirms the change or visibly reflects the saved value.",
+        },
+        {
+          title: "Invalid settings input is handled safely",
+          whatToDo: "Try an invalid value where an editable setting permits input.",
+          expected: "The app prevents invalid data or explains how to correct it.",
+        },
+      ],
+    },
+    {
+      section: "Account Safety and Recovery",
+      items: [
+        {
+          title: "Sign out works from Settings",
+          whatToDo: "Use the sign-out action from Settings when available.",
+          expected: "The session ends and the app returns to Authentication.",
+        },
+        {
+          title: "Saved settings survive refresh",
+          whatToDo: "Save a supported preference, refresh the browser, then return to Settings.",
+          expected: "The saved preference remains correct after refresh.",
+        },
+        {
+          title: "Settings is usable on mobile and keyboard",
+          whatToDo: "Test Settings at phone width and navigate controls with Tab.",
+          expected: "Controls fit the screen and show visible keyboard focus.",
+        },
+      ],
+    },
+  ],
+  ai: [
+    {
+      section: "Access and Availability",
+      items: [
+        {
+          title: "Authenticated AI actions are available",
+          whatToDo: "Sign in, complete a supported exercise, and find its AI action.",
+          expected: "The available AI action is clearly labelled and can be started.",
+        },
+        {
+          title: "Guest AI limitation is explained",
+          whatToDo: "Use Guest Mode and try an AI action in a supported module.",
+          expected: "The app gives a clear sign-in or account message instead of failing silently.",
+        },
+        {
+          title: "AI loading feedback is visible",
+          whatToDo: "Request an AI response and observe the waiting state.",
+          expected: "The learner can tell the request is in progress and the page remains usable.",
+        },
+      ],
+    },
+    {
+      section: "Response Quality",
+      items: [
+        {
+          title: "Reading AI uses the current question context",
+          whatToDo: "Submit a Reading answer and request an AI explanation.",
+          expected: "The explanation relates to the question, chosen answer, and available passage evidence.",
+        },
+        {
+          title: "Writing AI feedback is structured",
+          whatToDo: "Submit a valid Writing response and read the feedback.",
+          expected: "The response includes the expected assessment sections and practical next steps.",
+        },
+        {
+          title: "Typed Speaking feedback avoids audio-only claims",
+          whatToDo: "Submit a typed Speaking response and read the feedback.",
+          expected: "Feedback discusses the transcript without claiming to hear pauses, speed, pronunciation, or microphone delivery.",
+        },
+      ],
+    },
+    {
+      section: "Fallbacks and Safety",
+      items: [
+        {
+          title: "AI failure message is learner-friendly",
+          whatToDo: "Observe a supported module when its AI request cannot complete.",
+          expected: "The message is clear, non-technical, and tells the learner what they can do next.",
+        },
+        {
+          title: "Core learning flow remains available",
+          whatToDo: "Use Reading or Listening when AI is slow or unavailable.",
+          expected: "Static explanations and normal learning controls remain available.",
+        },
+        {
+          title: "AI output renders safely",
+          whatToDo: "Read AI output containing punctuation or formatting-like characters.",
+          expected: "The response is displayed as safe, readable learner-facing text without broken layout.",
+        },
+      ],
+    },
+  ],
+  admin: [
+    {
+      section: "Access Control",
+      items: [
+        {
+          title: "Unauthorised users cannot access admin tools",
+          whatToDo: "Use a normal learner or guest account and attempt to reach an admin route or control.",
+          expected: "Admin functionality is hidden or access is denied safely without exposing private data.",
+        },
+        {
+          title: "Unauthorised route handling is clear",
+          whatToDo: "Open an admin URL directly while not authorised.",
+          expected: "The app redirects or shows an understandable access message instead of a blank or broken page.",
+        },
+        {
+          title: "Admin controls are not mixed into learner flows",
+          whatToDo: "Navigate the normal learner experience.",
+          expected: "Administrative actions are not shown in ordinary learner screens.",
+        },
+      ],
+    },
+    {
+      section: "Authorised Administration",
+      items: [
+        {
+          title: "Authorised admin area opens when provisioned",
+          whatToDo: "Use an authorised admin account if one is provisioned for this environment.",
+          expected: "The admin area opens with the expected restricted controls. Record Not Tested when no admin account is provisioned.",
+        },
+        {
+          title: "Admin data is clearly labelled",
+          whatToDo: "Review any available admin lists, summaries, or actions.",
+          expected: "The purpose and effect of each administrative control is clear before it is used.",
+        },
+        {
+          title: "Administrative changes require deliberate action",
+          whatToDo: "Inspect any destructive or high-impact admin action without completing it unless authorised.",
+          expected: "The interface makes the action clear and asks for confirmation where appropriate.",
+        },
+      ],
+    },
+    {
+      section: "Safety and Recovery",
+      items: [
+        {
+          title: "Sensitive information is not exposed to learners",
+          whatToDo: "Review normal learner and guest views after attempting admin access.",
+          expected: "Secrets, private user data, and administration-only details are never displayed.",
+        },
+        {
+          title: "Admin errors are handled safely",
+          whatToDo: "Trigger a harmless invalid admin navigation or unsupported action.",
+          expected: "The app gives a controlled response without a crash or raw technical details.",
+        },
+        {
+          title: "Admin view remains usable on supported screens",
+          whatToDo: "If an admin area is provisioned, test it at the intended desktop width and with keyboard navigation.",
+          expected: "Restricted controls remain readable and keyboard focus is visible.",
+        },
+      ],
+    },
+  ],
 };
 
 const Utils = {
@@ -1392,6 +1722,24 @@ const QAState = {
     );
   },
 
+  getModuleStats(moduleKey) {
+    const entries = this.getAllChecklistEntries(moduleKey);
+    const total = entries.length;
+    const passed = entries.filter((entry) => state.items[entry.id]?.result === "Pass").length;
+    const failed = entries.filter((entry) => state.items[entry.id]?.result === "Fail").length;
+    const completed = passed + failed;
+    const notTested = total - completed;
+    return {
+      total,
+      passed,
+      failed,
+      completed,
+      notTested,
+      progress: total ? Math.round((completed / total) * 100) : 0,
+      complete: total > 0 && notTested === 0,
+    };
+  },
+
   createItemId(moduleKey, section, index) {
     return `${moduleKey}:${Utils.slug(section)}:${index}`;
   },
@@ -1660,20 +2008,30 @@ const Renderer = {
   renderModuleOptions() {
     const select = document.getElementById("moduleName");
     select.innerHTML = MODULES.map(
-      (module) =>
-        `<option value="${module.key}">${Utils.escapeHtml(module.name)}${
-          module.populated ? "" : " (coming later)"
-        }</option>`,
+      (module) => {
+        const stats = QAState.getModuleStats(module.key);
+        return `<option value="${module.key}">${Utils.escapeHtml(module.name)}${
+          stats.complete ? " ✓ Complete" : ""
+        }</option>`;
+      },
     ).join("");
 
     const tiles = document.getElementById("moduleTiles");
     tiles.innerHTML = MODULES.map(
-      (module) => `
+      (module) => {
+        const stats = QAState.getModuleStats(module.key);
+        const status = stats.complete
+          ? `✓ Complete (${stats.completed}/${stats.total})`
+          : stats.completed
+            ? `${stats.completed}/${stats.total} complete`
+            : "Ready to test";
+        return `
         <button class="module-tile ${module.key === state.session.moduleName ? "active" : ""}" type="button" data-module-tile="${module.key}">
           <strong>${Utils.escapeHtml(module.name)}</strong>
-          <span>${module.populated ? "Ready to test" : "Coming later"}</span>
+          <span>${status}</span>
         </button>
-      `,
+      `;
+      },
     ).join("");
     tiles.querySelectorAll("[data-module-tile]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -1944,9 +2302,9 @@ const Renderer = {
       container.innerHTML = `
         <section class="module-section empty-module">
           <div class="empty-state">
-            <p class="eyebrow">Future Module</p>
-            <h2>${Utils.escapeHtml(module.name)} QA data has not been populated yet.</h2>
-            <p>This module is part of the future QA Manager structure. Reading, Listening, and Writing are currently populated.</p>
+            <p class="eyebrow">Checklist unavailable</p>
+            <h2>${Utils.escapeHtml(module.name)} has no QA checklist configuration.</h2>
+            <p>Choose another QA module or restore a valid QA Manager session.</p>
           </div>
         </section>
       `;
@@ -3025,6 +3383,7 @@ function persist() {
 
 function persistAndRender(options = {}) {
   persist();
+  Renderer.renderModuleOptions();
   Renderer.renderTimers();
   if (!options.skipChecklist) Renderer.renderChecklist();
   Renderer.renderDashboard();

@@ -48,9 +48,7 @@ Version 4 keeps the engineering power but changes the default experience:
 
 ## Current Scope
 
-The Authentication, Dashboard, Reading, Listening, Writing, and Speaking modules are populated with guided QA data and are ready to test.
-
-The architecture already includes module metadata for future expansion:
+All current QA Manager modules are populated with guided QA data:
 
 - Authentication
 - Dashboard
@@ -64,7 +62,7 @@ The architecture already includes module metadata for future expansion:
 - AI
 - Admin
 
-Other modules remain available as planned future QA areas.
+Module completion is derived from the persisted checklist results in the tester's browser. A module is marked complete only when every checklist item has a recorded result.
 
 ## Core Features
 
