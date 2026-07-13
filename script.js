@@ -1887,17 +1887,51 @@ const QAState = {
   },
 
   getAllChecklistEntries(moduleKey = state.session.moduleName) {
+    let sequence = 0;
     return this.getSections(moduleKey).flatMap((section) =>
-      section.items.map((item, index) => ({
-        id: this.createItemId(moduleKey, section.section, index),
-        moduleKey,
-        moduleName: MODULES.find((module) => module.key === moduleKey)?.name || moduleKey,
-        section: section.section,
-        title: getQaTitle(item),
-        whatToDo: item.whatToDo || "",
-        expectedResult: item.expected || "",
-      })),
+      section.items.map((item, index) => {
+        const title = getQaTitle(item);
+        const entry = {
+          id: this.createItemId(moduleKey, section.section, index),
+          moduleKey,
+          moduleName: MODULES.find((module) => module.key === moduleKey)?.name || moduleKey,
+          section: section.section,
+          title,
+          qaId: stableQaId(moduleKey, title, sequence + 1),
+          whatToDo: item.whatToDo || "",
+          expectedResult: item.expected || "",
+        };
+        sequence += 1;
+        return entry;
+      }),
     );
+  },
+
+  migrateStableQaIds() {
+    const legacyToStable = new Map();
+    let changed = false;
+    MODULES.forEach((module) => {
+      this.getAllChecklistEntries(module.key).forEach((entry) => {
+        const item = this.getItem(entry.id, entry);
+        const stableId = entry.qaId;
+        item.qaId = stableId;
+        if (item.bugId && item.bugId !== stableId) {
+          item.legacyBugId = item.legacyBugId || item.bugId;
+          legacyToStable.set(item.bugId, stableId);
+          item.bugId = stableId;
+          changed = true;
+        } else if (item.result === "Fail" && !item.bugId) {
+          item.bugId = stableId;
+          changed = true;
+        }
+      });
+    });
+    if (legacyToStable.size) {
+      state.selectedBugIds = (state.selectedBugIds || []).map(
+        (bugId) => legacyToStable.get(bugId) || bugId,
+      );
+    }
+    return changed;
   },
 
   getModuleStats(moduleKey) {
@@ -1926,6 +1960,7 @@ const QAState = {
     if (!state.items[id]) {
       state.items[id] = {
         result: "Not Tested",
+        qaId: defaults.qaId || "",
         bugId: "",
         noteOpen: false,
         severity: "",
@@ -1954,13 +1989,13 @@ const QAState = {
     return state.items[id];
   },
 
-  assignBugId(item, moduleKey) {
+  assignBugId(item, moduleKey, qaId = item.qaId) {
     if (item.bugId) return item.bugId;
     const module = MODULES.find((entry) => entry.key === moduleKey) || MODULES[2];
     const current = state.counters[module.prefix] || 0;
-    const next = current + 1;
-    state.counters[module.prefix] = next;
-    item.bugId = `${module.prefix}-${Utils.bugNumber(next)}`;
+    state.counters[module.prefix] = current + 1;
+    item.qaId = qaId || item.qaId || `${module.prefix}-${Utils.bugNumber(current + 1)}`;
+    item.bugId = item.qaId;
     item.createdAt = item.createdAt || new Date().toISOString();
     item.sessionId = item.sessionId || state.sessionId;
     item.statusHistory = item.statusHistory || [];
@@ -1976,11 +2011,11 @@ const QAState = {
     item.statusHistory.push({ status, at: item.updatedAt });
   },
 
-  setResult(item, moduleKey, result) {
+  setResult(item, moduleKey, result, qaId) {
     item.result = result;
     item.updatedAt = new Date().toISOString();
     if (result === "Fail") {
-      this.assignBugId(item, moduleKey);
+      this.assignBugId(item, moduleKey, qaId);
       if (!item.severity) item.severity = "Bug";
       if (!item.priority) item.priority = "Medium";
       if (!item.reproducibility) item.reproducibility = "Always";
@@ -2365,6 +2400,7 @@ const Renderer = {
           throw new Error("Invalid QA Manager session file.");
         }
         state = Storage.merge(Storage.defaultState(), nextState);
+        QAState.migrateStableQaIds();
         persist();
         this.renderAll();
         Utils.toast("Session restored.");
@@ -2516,6 +2552,7 @@ const Renderer = {
 
     state.ui = state.ui || { openSections: {} };
     state.ui.openSections = state.ui.openSections || {};
+    const checklistEntries = QAState.getAllChecklistEntries(module.key);
 
     sections.forEach((section, sectionIndex) => {
       const details = document.createElement("details");
@@ -2548,15 +2585,9 @@ const Renderer = {
       cards.className = "section-cards";
 
       section.items.forEach((qaItem, index) => {
-        const entry = {
-          id: QAState.createItemId(module.key, section.section, index),
-          moduleKey: module.key,
-          moduleName: module.name,
-          section: section.section,
-          title: getQaTitle(qaItem),
-          whatToDo: qaItem.whatToDo || "",
-          expectedResult: qaItem.expected || "",
-        };
+        const entry = checklistEntries.find(
+          (candidate) => candidate.id === QAState.createItemId(module.key, section.section, index),
+        );
         const item = QAState.getItem(entry.id, entry);
         const card = template.content.firstElementChild.cloneNode(true);
         card.dataset.id = entry.id;
@@ -2570,7 +2601,7 @@ const Renderer = {
         const checkbox = card.querySelector('[data-action="toggle-pass"]');
         checkbox.checked = item.result === "Pass";
         checkbox.addEventListener("change", () => {
-          QAState.setResult(item, module.key, checkbox.checked ? "Pass" : "Not Tested");
+          QAState.setResult(item, module.key, checkbox.checked ? "Pass" : "Not Tested", entry.qaId);
           persistAndRender();
         });
 
@@ -2585,7 +2616,7 @@ const Renderer = {
         });
 
         card.querySelector('[data-action="report-problem"]').addEventListener("click", () => {
-          QAState.setResult(item, module.key, "Fail");
+          QAState.setResult(item, module.key, "Fail", entry.qaId);
           item.noteOpen = true;
           persistAndRender();
         });
@@ -2703,6 +2734,7 @@ const Renderer = {
         item.screenshots.splice(index, 1);
         item.updatedAt = new Date().toISOString();
         persistAndRender({ skipChecklist: true });
+        Renderer.renderScreenshots(card, itemId);
       });
       preview.appendChild(wrapper);
     });
@@ -3622,6 +3654,13 @@ function getQaTitle(item) {
   return typeof item === "string" ? item : item.title;
 }
 
+function stableQaId(moduleKey, title, sequence) {
+  const explicit = String(title).match(/^([A-Z]+-\d{3})\s*(?:—|-)\s*/)?.[1];
+  if (explicit) return explicit;
+  const module = MODULES.find((entry) => entry.key === moduleKey);
+  return `${module?.prefix || moduleKey.toUpperCase()}-${Utils.bugNumber(sequence)}`;
+}
+
 function formatDuration(milliseconds) {
   const minutes = Math.floor(Math.max(0, milliseconds) / 60000);
   if (minutes < 1) return "0 min";
@@ -3775,6 +3814,7 @@ function fileToScreenshot(file) {
 document.addEventListener("DOMContentLoaded", () => {
   Timing.ensure();
   state.session = { ...state.session, ...Environment.detect() };
+  QAState.migrateStableQaIds();
   Renderer.init();
   Timing.syncTicker();
   persist();
