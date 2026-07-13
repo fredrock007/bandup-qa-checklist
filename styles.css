@@ -740,6 +740,24 @@ h3 {
   padding: 0.6rem;
 }
 
+.evidence-card figcaption {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.evidence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.evidence-actions button {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.5rem;
+}
+
 .evidence-empty {
   align-items: center;
   aspect-ratio: 16 / 10;

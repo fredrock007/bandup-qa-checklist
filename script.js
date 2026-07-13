@@ -1551,6 +1551,7 @@ const Storage = {
       },
       counters: {},
       selectedBugIds: [],
+      generatedExport: { key: "", content: "" },
       ui: {
         openSections: {},
       },
@@ -1586,6 +1587,10 @@ const Storage = {
       timing,
       counters: { ...base.counters, ...(saved.counters || {}) },
       selectedBugIds: Array.isArray(saved.selectedBugIds) ? saved.selectedBugIds : [],
+      generatedExport: {
+        ...base.generatedExport,
+        ...(saved.generatedExport || {}),
+      },
       ui: {
         openSections: {
           ...base.ui.openSections,
@@ -2069,6 +2074,14 @@ const QAState = {
     return this.getBugs().find(({ item }) => item.bugId === bugId);
   },
 
+  deleteBug(bugId) {
+    const bug = this.getBugById(bugId);
+    if (!bug) return false;
+    delete state.items[bug.id];
+    state.selectedBugIds = (state.selectedBugIds || []).filter((id) => id !== bugId);
+    return true;
+  },
+
   getSelectedBugs() {
     const selected = new Set(state.selectedBugIds || []);
     return this.getBugs().filter(({ item }) => selected.has(item.bugId));
@@ -2205,6 +2218,7 @@ const Renderer = {
     this.renderFilterOptions();
     this.bindSessionFields();
     this.bindGlobalActions();
+    this.renderGeneratedExport();
     this.renderAll();
   },
 
@@ -2402,6 +2416,7 @@ const Renderer = {
         state = Storage.merge(Storage.defaultState(), nextState);
         QAState.migrateStableQaIds();
         persist();
+        this.renderGeneratedExport();
         this.renderAll();
         Utils.toast("Session restored.");
       } catch (error) {
@@ -2437,12 +2452,33 @@ const Renderer = {
       const output = document.getElementById("generatedExport").value;
       if (output) Modal.showMarkdown(output);
     });
+    document.getElementById("clearGeneratedExport").addEventListener("click", () => {
+      const output = document.getElementById("generatedExport").value;
+      if (!output) return;
+      if (!window.confirm("Clear the generated Markdown? This removes only the displayed output.")) return;
+      document.getElementById("generatedExport").value = "";
+      document.getElementById("generatedExport").dataset.exportKey = "";
+      state.generatedExport = { key: "", content: "" };
+      persist();
+      this.updateGeneratedExportActions();
+      Utils.toast("Generated Markdown cleared.");
+    });
+    document.getElementById("generatedExport").addEventListener("input", (event) => {
+      const output = event.currentTarget;
+      state.generatedExport = {
+        key: output.dataset.exportKey || "",
+        content: output.value,
+      };
+      persist();
+      this.updateGeneratedExportActions();
+    });
     document.getElementById("resetAll").addEventListener("click", () => {
       const confirmed = window.confirm("Reset all QA Manager data stored in this browser?");
       if (!confirmed) return;
       Storage.reset();
       state = Storage.defaultState();
       Environment.refresh();
+      this.renderGeneratedExport();
       Utils.toast("QA Manager reset.");
     });
     document.getElementById("refreshDetection").addEventListener("click", () => {
@@ -2507,6 +2543,8 @@ const Renderer = {
     const container = output.closest(".generated-output");
     output.value = markdown;
     output.dataset.exportKey = key;
+    state.generatedExport = { key, content: markdown };
+    persist();
     this.updateGeneratedExportActions();
     setMode("engineering");
     window.setTimeout(() => {
@@ -2526,8 +2564,18 @@ const Renderer = {
 
   updateGeneratedExportActions() {
     const hasOutput = Boolean(document.getElementById("generatedExport").value);
+    document.getElementById("copyGeneratedExport").disabled = !hasOutput;
     document.getElementById("maximiseGeneratedExport").disabled = !hasOutput;
     document.getElementById("downloadGeneratedExport").disabled = !hasOutput;
+    document.getElementById("clearGeneratedExport").disabled = !hasOutput;
+  },
+
+  renderGeneratedExport() {
+    const output = document.getElementById("generatedExport");
+    const generated = state.generatedExport || {};
+    output.value = generated.content || "";
+    output.dataset.exportKey = generated.key || "";
+    this.updateGeneratedExportActions();
   },
 
   renderChecklist() {
@@ -2731,10 +2779,7 @@ const Renderer = {
         );
       });
       wrapper.querySelector('[data-action="remove-screenshot"]').addEventListener("click", () => {
-        item.screenshots.splice(index, 1);
-        item.updatedAt = new Date().toISOString();
-        persistAndRender({ skipChecklist: true });
-        Renderer.renderScreenshots(card, itemId);
+        removeScreenshot(itemId, index);
       });
       preview.appendChild(wrapper);
     });
@@ -2834,6 +2879,9 @@ const Renderer = {
             <button class="secondary" type="button" data-toggle-archive="${Utils.escapeHtml(item.bugId)}">
               ${item.archived ? "Restore" : "Archive"}
             </button>
+            <button class="danger" type="button" data-delete-bug="${Utils.escapeHtml(item.bugId)}">
+              Delete
+            </button>
           </article>
         `;
       })
@@ -2854,6 +2902,18 @@ const Renderer = {
         persistAndRender({ skipChecklist: true });
       });
     });
+    container.querySelectorAll("[data-delete-bug]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const bugId = button.dataset.deleteBug;
+        const confirmed = window.confirm(
+          `Delete ${bugId} permanently? Its notes and screenshots will also be removed. This cannot be undone.`,
+        );
+        if (!confirmed) return;
+        if (!QAState.deleteBug(bugId)) return;
+        persistAndRender();
+        Utils.toast(`${bugId} deleted.`);
+      });
+    });
   },
 
   renderEvidenceGallery() {
@@ -2866,7 +2926,7 @@ const Renderer = {
     }
 
     container.innerHTML = bugsWithEvidence
-      .map(({ item, title }) => `
+      .map(({ entry, item, title }) => `
         <article class="evidence-card">
           <div>
             <p class="bug-id assigned">${Utils.escapeHtml(item.bugId)}</p>
@@ -2879,13 +2939,32 @@ const Renderer = {
                 if (!screenshot) return `<div class="evidence-empty">Screenshot ${index + 1}</div>`;
                 return `<figure><img src="${screenshot.dataUrl}" alt="${Utils.escapeHtml(
                   item.bugId,
-                )} screenshot ${index + 1}" /><figcaption>Screenshot ${index + 1}</figcaption></figure>`;
+                )} screenshot ${index + 1}" /><figcaption><span>Screenshot ${index + 1}</span><span class="evidence-actions"><button type="button" class="secondary" data-evidence-maximise="${Utils.escapeHtml(
+                  item.bugId,
+                )}" data-evidence-index="${index}">Maximise</button><button type="button" class="danger" data-evidence-delete="${Utils.escapeHtml(
+                  item.bugId,
+                )}" data-evidence-index="${index}">Delete</button></span></figcaption></figure>`;
               })
               .join("")}
           </div>
         </article>
       `)
       .join("");
+
+    container.querySelectorAll("[data-evidence-maximise]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const bug = QAState.getBugById(button.dataset.evidenceMaximise);
+        const screenshot = bug?.item.screenshots[Number(button.dataset.evidenceIndex)];
+        if (screenshot) Modal.showImage(`Screenshot: ${screenshot.name}`, screenshot.dataUrl, screenshot.name);
+      });
+    });
+    container.querySelectorAll("[data-evidence-delete]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const bug = QAState.getBugById(button.dataset.evidenceDelete);
+        if (!bug) return;
+        removeScreenshot(bug.id, Number(button.dataset.evidenceIndex));
+      });
+    });
   },
 };
 
@@ -3778,6 +3857,16 @@ function applyBugFilters(bugs) {
     if (bugState !== "archived" && item.archived) return false;
     return true;
   });
+}
+
+function removeScreenshot(itemId, index) {
+  const item = QAState.getItem(itemId);
+  if (!item.screenshots[index]) return;
+  item.screenshots.splice(index, 1);
+  item.updatedAt = new Date().toISOString();
+  persistAndRender({ skipChecklist: true });
+  const card = document.querySelector(`.qa-card[data-id="${itemId}"]`);
+  if (card) Renderer.renderScreenshots(card, itemId);
 }
 
 async function addScreenshots(itemId, files) {
