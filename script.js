@@ -1348,19 +1348,14 @@ const QA_DATA = {
       section: "Access Control",
       items: [
         {
-          title: "Unauthorised users cannot access admin tools",
-          whatToDo: "Use a normal learner or guest account and attempt to reach an admin route or control.",
-          expected: "Admin functionality is hidden or access is denied safely without exposing private data.",
+          title: "ADMIN-001 — Unauthorised route handling",
+          whatToDo: "Log in as a normal learner and try to open an Admin URL directly.",
+          expected: "Pass: BandUp sends you to a safe page or clearly says, “You do not have permission to access this page.” Fail: you see a blank page, crash, broken layout, or technical error.",
         },
         {
-          title: "Unauthorised route handling is clear",
-          whatToDo: "Open an admin URL directly while not authorised.",
-          expected: "The app redirects or shows an understandable access message instead of a blank or broken page.",
-        },
-        {
-          title: "Admin controls are not mixed into learner flows",
-          whatToDo: "Navigate the normal learner experience.",
-          expected: "Administrative actions are not shown in ordinary learner screens.",
+          title: "ADMIN-002 — Admin controls are hidden from learners",
+          whatToDo: "Use ordinary learner screens and navigation.",
+          expected: "Pass: you cannot see User Management, Delete User, Reset Database, System Settings, AI Configuration, or an Admin Dashboard. Fail: any Admin-only control is visible in a learner flow.",
         },
       ],
     },
@@ -1368,19 +1363,19 @@ const QA_DATA = {
       section: "Authorised Administration",
       items: [
         {
-          title: "Authorised admin area opens when provisioned",
-          whatToDo: "Use an authorised admin account if one is provisioned for this environment.",
-          expected: "The admin area opens with the expected restricted controls. Record Not Tested when no admin account is provisioned.",
+          title: "ADMIN-003 — Admin area opens for an authorised Admin",
+          whatToDo: "Open the Admin area using an authorised Admin account.",
+          expected: "Pass: the Admin page opens and the expected restricted tools appear. Select Not Tested when no Admin account has been provisioned.",
         },
         {
-          title: "Admin data is clearly labelled",
-          whatToDo: "Review any available admin lists, summaries, or actions.",
-          expected: "The purpose and effect of each administrative control is clear before it is used.",
+          title: "ADMIN-004 — Admin controls are clearly labelled",
+          whatToDo: "Review each Admin control before using it.",
+          expected: "Pass: each label clearly explains its action, for example “Delete User.” Fail: it uses unclear wording such as “Execute”, “Process”, or an unexplained icon.",
         },
         {
-          title: "Administrative changes require deliberate action",
-          whatToDo: "Inspect any destructive or high-impact admin action without completing it unless authorised.",
-          expected: "The interface makes the action clear and asks for confirmation where appropriate.",
+          title: "ADMIN-005 — Dangerous actions require confirmation",
+          whatToDo: "Attempt an action such as deleting a user, deleting data, clearing progress, or resetting information.",
+          expected: "Pass: BandUp asks you to confirm and warns you when the action cannot be undone. Fail: the destructive action happens immediately without confirmation.",
         },
       ],
     },
@@ -1388,19 +1383,24 @@ const QA_DATA = {
       section: "Safety and Recovery",
       items: [
         {
-          title: "Sensitive information is not exposed to learners",
-          whatToDo: "Review normal learner and guest views after attempting admin access.",
-          expected: "Secrets, private user data, and administration-only details are never displayed.",
+          title: "ADMIN-006 — Sensitive information is protected",
+          whatToDo: "Review learner pages, Admin messages, and error states.",
+          expected: "Pass: learners cannot see API keys, passwords, database connection details, private Supabase or server information, raw internal errors, other users’ private data, or Admin-only information. Fail: any sensitive or private system information is exposed.",
         },
         {
-          title: "Admin errors are handled safely",
-          whatToDo: "Trigger a harmless invalid admin navigation or unsupported action.",
-          expected: "The app gives a controlled response without a crash or raw technical details.",
+          title: "ADMIN-007 — Admin errors are handled safely",
+          whatToDo: "Trigger or observe an Admin failure where naturally possible.",
+          expected: "Pass: BandUp shows a controlled message such as, “Something went wrong. Please try again.” Fail: the page crashes or exposes code, stack traces, SQL errors, API payloads, or debugging information.",
         },
         {
-          title: "Admin view remains usable on supported screens",
-          whatToDo: "If an admin area is provisioned, test it at the intended desktop width and with keyboard navigation.",
-          expected: "Restricted controls remain readable and keyboard focus is visible.",
+          title: "ADMIN-008 — Admin layout remains usable",
+          whatToDo: "Check the Admin area on a supported desktop or laptop width and use Tab navigation.",
+          expected: "Pass: text is readable, controls do not overlap, nothing important is cut off, buttons remain usable, and keyboard focus is visible. Fail: the layout overlaps, clips content, hides controls, or gives no visible keyboard focus.",
+        },
+        {
+          title: "ADMIN-009 — Learners cannot perform Admin actions",
+          whatToDo: "Using a normal learner account, try to access or use Admin tools.",
+          expected: "Pass: the learner cannot open Admin tools, manage users, change system settings, or delete data. Fail: any Admin action works for a learner.",
         },
       ],
     },
@@ -1473,7 +1473,20 @@ const Utils = {
     link.href = url;
     link.download = filename;
     link.click();
-    URL.revokeObjectURL(url);
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  },
+
+  downloadDataUrl(filename, dataUrl) {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = filename;
+    link.click();
+  },
+
+  imageExtension(dataUrl) {
+    const mime = String(dataUrl).match(/^data:image\/([a-z0-9+.-]+);/i)?.[1]?.toLowerCase();
+    if (mime === "jpeg") return "jpg";
+    return ["png", "gif", "webp", "jpg"].includes(mime) ? mime : "png";
   },
 
   readJsonFile(file) {
@@ -1584,11 +1597,15 @@ const Storage = {
   },
 
   mergeTiming(base, saved) {
-    const normalizeBucket = (bucket = {}) => ({
-      elapsedMs: Number(bucket.elapsedMs) || 0,
-      isRunning: false,
-      lastStartedAt: "",
-    });
+    const normalizeBucket = (bucket = {}) => {
+      const startedAt = new Date(bucket.lastStartedAt).getTime();
+      const isRunning = Boolean(bucket.isRunning && Number.isFinite(startedAt));
+      return {
+        elapsedMs: Number(bucket.elapsedMs) || 0,
+        isRunning,
+        lastStartedAt: isRunning ? bucket.lastStartedAt : "",
+      };
+    };
     const modules = Object.fromEntries(
       Object.entries(saved.modules || {}).map(([key, bucket]) => [key, normalizeBucket(bucket)]),
     );
@@ -1619,6 +1636,8 @@ let state = Storage.load();
 let focusedCardId = null;
 
 const Timing = {
+  intervalId: null,
+
   now() {
     return Date.now();
   },
@@ -1655,6 +1674,7 @@ const Timing = {
       bucket.isRunning = true;
       bucket.lastStartedAt = startedAt;
     });
+    this.syncTicker();
   },
 
   pause() {
@@ -1662,6 +1682,7 @@ const Timing = {
     [state.timing.session, state.timing.project, this.moduleBucket()].forEach((bucket) => {
       this.pauseBucket(bucket);
     });
+    this.syncTicker();
   },
 
   pauseBucket(bucket) {
@@ -1677,6 +1698,7 @@ const Timing = {
     state.sessionStartedAt = new Date().toISOString();
     state.timing.session = { elapsedMs: 0, isRunning: false, lastStartedAt: "" };
     state.timing.modules[state.session.moduleName] = { elapsedMs: 0, isRunning: false, lastStartedAt: "" };
+    this.syncTicker();
   },
 
   switchModule(previousModule, nextModule) {
@@ -1688,10 +1710,166 @@ const Timing = {
       next.isRunning = true;
       next.lastStartedAt = new Date().toISOString();
     }
+    this.syncTicker();
+  },
+
+  hasRunningBucket() {
+    return [state.timing?.session, state.timing?.project, this.moduleBucket()].some(
+      (bucket) => bucket?.isRunning,
+    );
+  },
+
+  syncTicker() {
+    if (this.hasRunningBucket()) {
+      if (this.intervalId) return;
+      this.intervalId = window.setInterval(() => {
+        Renderer.renderTimers();
+        Renderer.renderCompletionSummary();
+      }, 1000);
+      return;
+    }
+    if (this.intervalId) window.clearInterval(this.intervalId);
+    this.intervalId = null;
   },
 
   formatted(bucket) {
     return formatDuration(this.elapsed(bucket));
+  },
+};
+
+const Modal = {
+  lastFocused: null,
+
+  init() {
+    const modal = document.getElementById("qaModal");
+    document.getElementById("qaModalClose").addEventListener("click", () => this.close());
+    modal.addEventListener("click", (event) => {
+      if (event.target.dataset.modalClose) this.close();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !modal.classList.contains("hidden")) this.close();
+    });
+  },
+
+  open(title, content) {
+    this.lastFocused = document.activeElement;
+    document.getElementById("qaModalTitle").textContent = title;
+    const container = document.getElementById("qaModalContent");
+    container.replaceChildren(content);
+    const modal = document.getElementById("qaModal");
+    modal.classList.remove("hidden");
+    document.getElementById("qaModalClose").focus();
+  },
+
+  close() {
+    const modal = document.getElementById("qaModal");
+    if (modal.classList.contains("hidden")) return;
+    modal.classList.add("hidden");
+    document.getElementById("qaModalContent").replaceChildren();
+    this.lastFocused?.focus?.();
+    this.lastFocused = null;
+  },
+
+  showMarkdown(markdown) {
+    const output = document.createElement("textarea");
+    output.className = "modal-markdown";
+    output.readOnly = true;
+    output.value = markdown;
+    Modal.open("Generated Markdown", output);
+  },
+
+  showImage(title, dataUrl, alt) {
+    const image = document.createElement("img");
+    image.className = "modal-image";
+    image.src = dataUrl;
+    image.alt = alt;
+    Modal.open(title, image);
+  },
+
+  editScreenshot(itemId, screenshotIndex) {
+    const item = QAState.getItem(itemId);
+    const screenshot = item.screenshots[screenshotIndex];
+    if (!screenshot) return;
+
+    const content = document.createElement("div");
+    const instructions = document.createElement("p");
+    instructions.className = "image-editor-copy";
+    instructions.textContent = "Draw on the screenshot to mark an issue. Save applies the edited image; Cancel keeps the original unchanged.";
+    const canvas = document.createElement("canvas");
+    canvas.className = "image-editor-canvas";
+    canvas.setAttribute("aria-label", `Edit ${screenshot.name}`);
+    const actions = document.createElement("div");
+    actions.className = "image-editor-actions";
+    const clear = document.createElement("button");
+    clear.type = "button";
+    clear.className = "secondary";
+    clear.textContent = "Clear marks";
+    clear.disabled = true;
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "secondary";
+    cancel.textContent = "Cancel";
+    const save = document.createElement("button");
+    save.type = "button";
+    save.textContent = "Save edited screenshot";
+    save.disabled = true;
+    actions.append(clear, cancel, save);
+    content.append(instructions, canvas, actions);
+
+    const image = new Image();
+    image.onload = () => {
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d");
+      context.drawImage(image, 0, 0);
+      let drawing = false;
+      const point = (event) => {
+        const bounds = canvas.getBoundingClientRect();
+        return {
+          x: (event.clientX - bounds.left) * (canvas.width / bounds.width),
+          y: (event.clientY - bounds.top) * (canvas.height / bounds.height),
+        };
+      };
+      const draw = (event) => {
+        if (!drawing) return;
+        const next = point(event);
+        context.lineTo(next.x, next.y);
+        context.stroke();
+      };
+      const begin = (event) => {
+        drawing = true;
+        const start = point(event);
+        context.beginPath();
+        context.moveTo(start.x, start.y);
+        context.strokeStyle = "#dc2626";
+        context.lineWidth = Math.max(4, canvas.width / 180);
+        context.lineCap = "round";
+        canvas.setPointerCapture?.(event.pointerId);
+      };
+      const stop = () => { drawing = false; };
+      canvas.addEventListener("pointerdown", begin);
+      canvas.addEventListener("pointermove", draw);
+      canvas.addEventListener("pointerup", stop);
+      canvas.addEventListener("pointercancel", stop);
+      clear.disabled = false;
+      save.disabled = false;
+      clear.addEventListener("click", () => context.drawImage(image, 0, 0));
+      save.addEventListener("click", () => {
+        screenshot.dataUrl = canvas.toDataURL("image/png");
+        screenshot.editedAt = new Date().toISOString();
+        item.updatedAt = screenshot.editedAt;
+        persistAndRender({ skipChecklist: true });
+        Modal.close();
+        Utils.toast("Edited screenshot saved locally.");
+      });
+    };
+    image.onerror = () => {
+      Modal.close();
+      Utils.toast("This screenshot could not be opened for editing.");
+    };
+    cancel.addEventListener("click", () => Modal.close());
+    image.src = screenshot.dataUrl;
+    Modal.open(`Edit screenshot: ${screenshot.name}`, content);
   },
 };
 
@@ -1987,6 +2165,7 @@ const Environment = {
 
 const Renderer = {
   init() {
+    Modal.init();
     this.renderModuleOptions();
     this.renderFilterOptions();
     this.bindSessionFields();
@@ -2216,7 +2395,11 @@ const Renderer = {
         return;
       }
       const key = document.getElementById("generatedExport").dataset.exportKey || "summary";
-      Utils.download(GENERATED_EXPORTS[key].filename, output, "text/markdown");
+      Utils.download(this.generatedExportFilename(key), output, "text/markdown");
+    });
+    document.getElementById("maximiseGeneratedExport").addEventListener("click", () => {
+      const output = document.getElementById("generatedExport").value;
+      if (output) Modal.showMarkdown(output);
     });
     document.getElementById("resetAll").addEventListener("click", () => {
       const confirmed = window.confirm("Reset all QA Manager data stored in this browser?");
@@ -2272,8 +2455,15 @@ const Renderer = {
 
   renderTimers() {
     Timing.ensure();
-    setText("sessionElapsed", Timing.formatted(state.timing.session));
+    const session = state.timing.session;
+    const elapsed = Timing.elapsed(session);
+    setText("sessionElapsed", Timing.formatted(session));
     setText("moduleElapsed", Timing.formatted(Timing.moduleBucket()));
+    const start = document.getElementById("startTimer");
+    const pause = document.getElementById("pauseTimer");
+    start.disabled = session.isRunning;
+    start.textContent = session.isRunning ? "Running" : elapsed ? "Resume" : "Start";
+    pause.disabled = !session.isRunning;
   },
 
   setGeneratedExport(key, markdown) {
@@ -2281,6 +2471,7 @@ const Renderer = {
     const container = output.closest(".generated-output");
     output.value = markdown;
     output.dataset.exportKey = key;
+    this.updateGeneratedExportActions();
     setMode("engineering");
     window.setTimeout(() => {
       container?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2289,6 +2480,18 @@ const Renderer = {
       window.setTimeout(() => container?.classList.remove("generated-output-focus"), 1600);
     }, 0);
     Utils.toast(GENERATED_EXPORTS[key].title);
+  },
+
+  generatedExportFilename(key) {
+    const session = state.sessionId ? state.sessionId.slice(0, 8) : state.session.moduleName;
+    const base = GENERATED_EXPORTS[key]?.filename?.replace(/\.md$/, "") || `bandup-qa-${key}`;
+    return `${base}-${session}.md`;
+  },
+
+  updateGeneratedExportActions() {
+    const hasOutput = Boolean(document.getElementById("generatedExport").value);
+    document.getElementById("maximiseGeneratedExport").disabled = !hasOutput;
+    document.getElementById("downloadGeneratedExport").disabled = !hasOutput;
   },
 
   renderChecklist() {
@@ -2475,13 +2678,31 @@ const Renderer = {
         <img src="${screenshot.dataUrl}" alt="Screenshot ${index + 1}" />
         <div class="screenshot-footer">
           <span>${Utils.escapeHtml(screenshot.name)}</span>
-          <button type="button">Remove</button>
+          <div class="screenshot-actions">
+            <button type="button" class="secondary" data-action="edit-screenshot">Edit</button>
+            <button type="button" class="secondary" data-action="maximise-screenshot">Maximise</button>
+            <button type="button" class="secondary" data-action="download-screenshot">Download</button>
+            <button type="button" data-action="remove-screenshot">Delete</button>
+          </div>
         </div>
       `;
-      wrapper.querySelector("button").addEventListener("click", () => {
+      wrapper.querySelector('[data-action="edit-screenshot"]').addEventListener("click", () => {
+        Modal.editScreenshot(itemId, index);
+      });
+      wrapper.querySelector('[data-action="maximise-screenshot"]').addEventListener("click", () => {
+        Modal.showImage(`Screenshot ${index + 1}: ${screenshot.name}`, screenshot.dataUrl, screenshot.name);
+      });
+      wrapper.querySelector('[data-action="download-screenshot"]').addEventListener("click", () => {
+        const label = item.bugId || Utils.slug(itemId) || "qa-item";
+        Utils.downloadDataUrl(
+          `bandup-qa-${label}-screenshot-${index + 1}.${Utils.imageExtension(screenshot.dataUrl)}`,
+          screenshot.dataUrl,
+        );
+      });
+      wrapper.querySelector('[data-action="remove-screenshot"]').addEventListener("click", () => {
         item.screenshots.splice(index, 1);
         item.updatedAt = new Date().toISOString();
-        persistAndRender();
+        persistAndRender({ skipChecklist: true });
       });
       preview.appendChild(wrapper);
     });
@@ -3555,16 +3776,11 @@ document.addEventListener("DOMContentLoaded", () => {
   Timing.ensure();
   state.session = { ...state.session, ...Environment.detect() };
   Renderer.init();
+  Timing.syncTicker();
   persist();
-  window.setInterval(() => {
-    if (!state.timing?.session?.isRunning) return;
-    Renderer.renderTimers();
-    Renderer.renderCompletionSummary();
-  }, 1000);
 });
 
 window.addEventListener("beforeunload", () => {
-  Timing.pause();
   persist();
 });
 

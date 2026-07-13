@@ -548,6 +548,7 @@ h3 {
 .screenshot-footer {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.55rem;
@@ -562,9 +563,101 @@ h3 {
 }
 
 .screenshot-footer button {
+  padding: 0.35rem 0.5rem;
+}
+
+.screenshot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.screenshot-actions [data-action="remove-screenshot"] {
   background: #fff1f1;
   color: #9f2525;
-  padding: 0.35rem 0.5rem;
+}
+
+.qa-modal {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 1000;
+}
+
+.qa-modal-backdrop {
+  background: rgba(15, 23, 42, 0.68);
+  inset: 0;
+  position: absolute;
+}
+
+.qa-modal-dialog {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.4);
+  display: grid;
+  gap: 1rem;
+  max-height: calc(100vh - 2rem);
+  max-width: min(1100px, 100%);
+  overflow: hidden;
+  padding: 1rem;
+  position: relative;
+  width: 100%;
+}
+
+.qa-modal-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.qa-modal-header h2 {
+  font-size: clamp(1.15rem, 3vw, 1.7rem);
+  margin: 0;
+}
+
+.qa-modal-content {
+  min-height: 0;
+  overflow: auto;
+}
+
+.modal-markdown {
+  box-sizing: border-box;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  min-height: min(70vh, 720px);
+  resize: vertical;
+  white-space: pre;
+  width: 100%;
+}
+
+.modal-image,
+.image-editor-canvas {
+  display: block;
+  height: auto;
+  margin: 0 auto;
+  max-height: 68vh;
+  max-width: 100%;
+  width: auto;
+}
+
+.image-editor-canvas {
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.image-editor-copy {
+  color: var(--muted);
+  margin: 0 0 0.75rem;
+}
+
+.image-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
 }
 
 .bug-list {
@@ -1149,6 +1242,15 @@ h3 {
 
   .timer-actions button {
     flex: 1 1 0;
+  }
+
+  .qa-modal {
+    padding: 0.5rem;
+  }
+
+  .qa-modal-dialog {
+    max-height: calc(100vh - 1rem);
+    padding: 0.75rem;
   }
 
   .mode-switch,

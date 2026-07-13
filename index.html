@@ -345,7 +345,8 @@
             </label>
             <div class="generated-actions">
               <button id="copyGeneratedExport" class="secondary" type="button">Copy Generated Markdown</button>
-              <button id="downloadGeneratedExport" class="secondary" type="button">Download Generated Markdown</button>
+              <button id="maximiseGeneratedExport" class="secondary" type="button" disabled>Maximise Markdown</button>
+              <button id="downloadGeneratedExport" class="secondary" type="button" disabled>Download Generated Markdown</button>
             </div>
           </div>
         </section>
@@ -554,6 +555,17 @@
         </div>
       </article>
     </template>
+
+    <div id="qaModal" class="qa-modal hidden" role="dialog" aria-modal="true" aria-labelledby="qaModalTitle">
+      <div class="qa-modal-backdrop" data-modal-close="true"></div>
+      <section class="qa-modal-dialog" tabindex="-1">
+        <header class="qa-modal-header">
+          <h2 id="qaModalTitle">Preview</h2>
+          <button id="qaModalClose" class="secondary" type="button">Close</button>
+        </header>
+        <div id="qaModalContent" class="qa-modal-content"></div>
+      </section>
+    </div>
 
     <script src="script.js"></script>
   </body>
