@@ -380,6 +380,8 @@ It ends with the required BandUp engineering instruction:
 Please investigate the root cause, propose the smallest safe implementation, verify the fix, update all relevant documentation, commit, push, and synchronize the Google Drive workspace if documentation changes.
 ```
 
+Generated Markdown remains editable in the Engineering Workspace. Copy, Maximise, and Download use the current edited text, and Clear Generated Markdown removes only that output.
+
 ### Release Recommendation
 
 Generate Release Recommendation produces an executive release decision:
@@ -472,6 +474,8 @@ Manual image upload is also supported with the Upload Images button.
 
 Screenshots are stored locally in browser storage where browser limits allow.
 
+Checklist and Evidence Gallery previews support Edit, Maximise, Download, and Delete. Screenshot edits and deletions are saved against the selected QA item without collapsing its active section.
+
 ## Local Persistence
 
 Data is saved automatically in browser `localStorage`.
@@ -483,6 +487,8 @@ This means:
 - data is local to the browser and device
 - clearing browser storage removes saved QA data
 - no QA data is sent to a server
+
+QA item identities are stable across modules and refreshes. Active QA timer state, bug records, screenshots, and generated output are persisted locally.
 
 The storage logic is separated in `script.js` so a future Supabase adapter can be added without redesigning the UI.
 
